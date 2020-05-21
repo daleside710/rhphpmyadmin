@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * holds the database index columns class
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
@@ -8,13 +11,19 @@ namespace PhpMyAdmin;
 
 /**
  * Index column wrapper
+ *
+ * @package PhpMyAdmin
  */
 class IndexColumn
 {
-    /** @var string The column name */
+    /**
+     * @var string The column name
+     */
     private $_name = '';
 
-    /** @var int The column sequence number in the index, starting with 1. */
+    /**
+     * @var integer The column sequence number in the index, starting with 1.
+     */
     private $_seq_in_index = 1;
 
     /**
@@ -27,7 +36,7 @@ class IndexColumn
      * The number of indexed characters if the column is only partly indexed,
      * NULL if the entire column is indexed.
      *
-     * @var int
+     * @var integer
      */
     private $_sub_part = null;
 
@@ -46,11 +55,13 @@ class IndexColumn
      * for small tables. The higher the cardinality, the greater the chance that
      * MySQL uses the index when doing joins.
      *
-     * @var int
+     * @var integer
      */
     private $_cardinality = null;
 
     /**
+     * Constructor
+     *
      * @param array $params an array containing the parameters of the index column
      */
     public function __construct(array $params = [])
@@ -120,12 +131,12 @@ class IndexColumn
     /**
      * Returns whether the column is nullable
      *
-     * @param bool $as_text whether to returned the string representation
+     * @param boolean $as_text whether to returned the string representation
      *
-     * @return string nullability of the column. True/false or Yes/No depending
-     *                on the value of the $as_text parameter
+     * @return mixed nullability of the column. True/false or Yes/No depending
+     *               on the value of the $as_text parameter
      */
-    public function getNull($as_text = false): string
+    public function getNull($as_text = false)
     {
         if ($as_text) {
             if (! $this->_null || $this->_null == 'NO') {

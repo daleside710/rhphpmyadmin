@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Contains PhpMyAdmin\Plugins\Schema\Dia\TableStatsDia class
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
@@ -8,9 +11,6 @@ namespace PhpMyAdmin\Plugins\Schema\Dia;
 
 use PhpMyAdmin\Plugins\Schema\ExportRelationSchema;
 use PhpMyAdmin\Plugins\Schema\TableStats;
-use function in_array;
-use function shuffle;
-use function sprintf;
 
 /**
  * Table preferences/statistics
@@ -18,9 +18,9 @@ use function sprintf;
  * This class preserves the table co-ordinates,fields
  * and helps in drawing/generating the Tables in dia XML document.
  *
- * @see     PMA_DIA
- *
+ * @package PhpMyAdmin
  * @name    Table_Stats_Dia
+ * @see     PMA_DIA
  */
 class TableStatsDia extends TableStats
 {
@@ -28,13 +28,15 @@ class TableStatsDia extends TableStats
     public $tableColor;
 
     /**
-     * @param Dia    $diagram    The current dia document
-     * @param string $db         The database name
-     * @param string $tableName  The table name
-     * @param int    $pageNumber The current page number (from the
-     *                           $cfg['Servers'][$i]['table_coords'] table)
-     * @param bool   $showKeys   Whether to display ONLY keys or not
-     * @param bool   $offline    Whether the coordinates are sent from the browser
+     * The "PhpMyAdmin\Plugins\Schema\Dia\TableStatsDia" constructor
+     *
+     * @param Dia     $diagram    The current dia document
+     * @param string  $db         The database name
+     * @param string  $tableName  The table name
+     * @param integer $pageNumber The current page number (from the
+     *                            $cfg['Servers'][$i]['table_coords'] table)
+     * @param boolean $showKeys   Whether to display ONLY keys or not
+     * @param boolean $offline    Whether the coordinates are sent from the browser
      */
     public function __construct(
         $diagram,
@@ -70,7 +72,7 @@ class TableStatsDia extends TableStats
     {
         ExportRelationSchema::dieSchema(
             $this->pageNumber,
-            'DIA',
+            "DIA",
             sprintf(__('The %s table doesn\'t exist!'), $this->tableName)
         );
     }
@@ -84,16 +86,15 @@ class TableStatsDia extends TableStats
      * Object and their attributes are involved in the combination
      * of displaying Database - Table on Dia Document.
      *
-     * @see    Dia
-     *
-     * @param bool $showColor Whether to show color for tables text or not
-     *                        if showColor is true then an array of $listOfColors
-     *                        will be used to choose the random colors for tables
-     *                        text we can change/add more colors to this array
+     * @param boolean $showColor Whether to show color for tables text or not
+     *                           if showColor is true then an array of $listOfColors
+     *                           will be used to choose the random colors for tables
+     *                           text we can change/add more colors to this array
      *
      * @return void
      *
      * @access public
+     * @see    Dia
      */
     public function tableDraw($showColor)
     {

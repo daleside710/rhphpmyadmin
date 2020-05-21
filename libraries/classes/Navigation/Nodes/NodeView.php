@@ -1,16 +1,20 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Functionality for the navigation tree
+ *
+ * @package PhpMyAdmin-Navigation
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Navigation\Nodes;
 
-use PhpMyAdmin\Html\Generator;
-use PhpMyAdmin\Url;
+use PhpMyAdmin\Util;
 
 /**
  * Represents a view node in the navigation tree
+ *
+ * @package PhpMyAdmin-Navigation
  */
 class NodeView extends NodeDatabaseChild
 {
@@ -25,13 +29,11 @@ class NodeView extends NodeDatabaseChild
     public function __construct($name, $type = Node::OBJECT, $isGroup = false)
     {
         parent::__construct($name, $type, $isGroup);
-        $this->icon = Generator::getImage('b_props', __('View'));
+        $this->icon = Util::getImage('b_props', __('View'));
         $this->links = [
-            'text' => Url::getFromRoute('/sql')
-                . '&amp;server=' . $GLOBALS['server']
+            'text' => 'sql.php?server=' . $GLOBALS['server']
                 . '&amp;db=%2$s&amp;table=%1$s&amp;pos=0',
-            'icon' => Url::getFromRoute('/table/structure')
-                . '&amp;server=' . $GLOBALS['server']
+            'icon' => 'tbl_structure.php?server=' . $GLOBALS['server']
                 . '&amp;db=%2$s&amp;table=%1$s',
         ];
         $this->classes = 'view';

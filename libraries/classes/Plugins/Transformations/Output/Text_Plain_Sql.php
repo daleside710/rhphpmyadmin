@@ -1,6 +1,10 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Text Plain SQL Transformations plugin for phpMyAdmin
+ *
+ * @package    PhpMyAdmin-Transformations
+ * @subpackage SQL
  */
 declare(strict_types=1);
 
@@ -11,10 +15,16 @@ use PhpMyAdmin\Response;
 
 /**
  * Handles the sql transformation for text plain
+ *
+ * @package    PhpMyAdmin-Transformations
+ * @subpackage SQL
  */
 // @codingStandardsIgnoreLine
 class Text_Plain_Sql extends SQLTransformationsPlugin
 {
+    /**
+     * No-arg constructor
+     */
     public function __construct()
     {
         if (! empty($GLOBALS['cfg']['CodemirrorEnable'])) {
@@ -35,7 +45,7 @@ class Text_Plain_Sql extends SQLTransformationsPlugin
      */
     public static function getMIMEType()
     {
-        return 'Text';
+        return "Text";
     }
 
     /**
@@ -45,6 +55,6 @@ class Text_Plain_Sql extends SQLTransformationsPlugin
      */
     public static function getMIMESubtype()
     {
-        return 'Plain';
+        return "Plain";
     }
 }

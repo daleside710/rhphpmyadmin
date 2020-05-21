@@ -1,19 +1,22 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Abstract class for the download transformations plugins
+ *
+ * @package    PhpMyAdmin-Transformations
+ * @subpackage Download
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Plugins\Transformations\Abs;
 
 use PhpMyAdmin\Plugins\TransformationsPlugin;
-use PhpMyAdmin\Url;
 use stdClass;
-use function array_merge;
-use function htmlspecialchars;
 
 /**
  * Provides common methods for all of the download transformations plugins.
+ *
+ * @package PhpMyAdmin
  */
 abstract class DownloadTransformationsPlugin extends TransformationsPlugin
 {
@@ -65,19 +68,16 @@ abstract class DownloadTransformationsPlugin extends TransformationsPlugin
             }
         }
 
-        $link = '<a href="' . Url::getFromRoute(
-            '/transformation/wrapper',
-            array_merge($options['wrapper_params'], [
-                'ct' => 'application/octet-stream',
-                'cn' => $cn,
-            ])
+        return sprintf(
+            '<a href="transformation_wrapper.php%s&amp;ct=application'
+            . '/octet-stream&amp;cn=%s" title="%s" class="disableAjax">%s</a>',
+            $options['wrapper_link'],
+            htmlspecialchars(urlencode($cn)),
+            htmlspecialchars($cn),
+            htmlspecialchars($cn)
         );
-        $link .= '" title="' . htmlspecialchars($cn);
-        $link .= '" class="disableAjax">' . htmlspecialchars($cn);
-        $link .= '</a>';
-
-        return $link;
     }
+
 
     /* ~~~~~~~~~~~~~~~~~~~~ Getters and Setters ~~~~~~~~~~~~~~~~~~~~ */
 
@@ -88,6 +88,6 @@ abstract class DownloadTransformationsPlugin extends TransformationsPlugin
      */
     public static function getName()
     {
-        return 'Download';
+        return "Download";
     }
 }

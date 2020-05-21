@@ -1,3 +1,4 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * @fileoverview    functions used in GIS data editor
  *
@@ -6,7 +7,7 @@
  */
 
 /* global addZoomPanControllers, loadSVG, selectVisualization, styleOSM, zoomAndPan */ // js/table/gis_visualization.js
-/* global pmaThemeImage */ // templates/javascript/variables.twig
+/* global pmaThemeImage */ // js/messages.php
 
 // eslint-disable-next-line no-unused-vars
 var gisEditorLoaded = false;
@@ -143,7 +144,7 @@ function loadJSAndGISEditor (value, field, type, inputName) {
  */
 function loadGISEditor (value, field, type, inputName) {
     var $gisEditor = $('#gis_editor');
-    $.post('index.php?route=/gis-data-editor', {
+    $.post('gis_data_editor.php', {
         'field' : field,
         'value' : value,
         'type' : type,
@@ -202,7 +203,7 @@ function insertDataAndClose () {
     var inputName = $form.find('input[name=\'input_name\']').val();
 
     var argsep = CommonParams.get('arg_separator');
-    $.post('index.php?route=/gis-data-editor', $form.serialize() + argsep + 'generate=true' + argsep + 'ajax_request=true', function (data) {
+    $.post('gis_data_editor.php', $form.serialize() + argsep + 'generate=true' + argsep + 'ajax_request=true', function (data) {
         if (typeof data !== 'undefined' && data.success === true) {
             $('input[name=\'' + inputName + '\']').val(data.result);
         } else {
@@ -250,7 +251,7 @@ AJAX.registerOnload('gis_data_editor.js', function () {
     $(document).on('change', '#gis_editor input[type=\'text\']', function () {
         var $form = $('form#gis_data_editor_form');
         var argsep = CommonParams.get('arg_separator');
-        $.post('index.php?route=/gis-data-editor', $form.serialize() + argsep + 'generate=true' + argsep + 'ajax_request=true', function (data) {
+        $.post('gis_data_editor.php', $form.serialize() + argsep + 'generate=true' + argsep + 'ajax_request=true', function (data) {
             if (typeof data !== 'undefined' && data.success === true) {
                 $('#gis_data_textarea').val(data.result);
                 $('#placeholder').empty().removeClass('hasSVG').html(data.visualization);
@@ -273,7 +274,7 @@ AJAX.registerOnload('gis_data_editor.js', function () {
         var $form = $('form#gis_data_editor_form');
 
         var argsep = CommonParams.get('arg_separator');
-        $.post('index.php?route=/gis-data-editor', $form.serialize() + argsep + 'get_gis_editor=true' + argsep + 'ajax_request=true', function (data) {
+        $.post('gis_data_editor.php', $form.serialize() + argsep + 'get_gis_editor=true' + argsep + 'ajax_request=true', function (data) {
             if (typeof data !== 'undefined' && data.success === true) {
                 $gisEditor.html(data.gis_editor);
                 initGISEditorVisualization();

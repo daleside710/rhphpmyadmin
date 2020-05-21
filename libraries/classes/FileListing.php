@@ -1,24 +1,18 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Holds the PhpMyAdmin\FileListing class
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin;
 
-use function asort;
-use function closedir;
-use function file_exists;
-use function function_exists;
-use function is_file;
-use function is_link;
-use function opendir;
-use function preg_match;
-use function readdir;
-use function substr;
-
 /**
  * Functions for listing directories
+ *
+ * @package PhpMyAdmin
  */
 class FileListing
 {
@@ -32,13 +26,7 @@ class FileListing
      */
     public function getDirContent(string $dir, string $expression = '')
     {
-        if (! @file_exists($dir)) {
-            return false;
-        }
-
-        $handle = @opendir($dir);
-
-        if ($handle === false) {
+        if (! @file_exists($dir) || ! ($handle = @opendir($dir))) {
             return false;
         }
 
@@ -56,7 +44,6 @@ class FileListing
         }
         closedir($handle);
         asort($result);
-
         return $result;
     }
 
@@ -78,13 +65,15 @@ class FileListing
         if ($list === false) {
             return false;
         }
-
-        $template = new Template();
-
-        return $template->render('file_select_options', [
-            'filesList' => $list,
-            'active' => $active,
-        ]);
+        $result = '';
+        foreach ($list as $val) {
+            $result .= '<option value="' . htmlspecialchars($val) . '"';
+            if ($val == $active) {
+                $result .= ' selected="selected"';
+            }
+            $result .= '>' . htmlspecialchars($val) . '</option>' . "\n";
+        }
+        return $result;
     }
 
     /**

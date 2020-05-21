@@ -1,28 +1,23 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Static methods for URL/hidden inputs generating
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin;
 
-use function htmlentities;
-use function htmlspecialchars;
-use function http_build_query;
-use function ini_get;
-use function is_array;
-use function mb_strpos;
-use function strlen;
-
 /**
  * Static methods for URL/hidden inputs generating
+ *
+ * @package PhpMyAdmin
  */
 class Url
 {
     /**
      * Generates text with hidden inputs.
-     *
-     * @see Url::getCommon()
      *
      * @param string|array $db     optional database name
      *                             (can also be an array of parameters)
@@ -31,9 +26,11 @@ class Url
      * @param string|array $skip   do not generate a hidden field for this parameter
      *                             (can be an array of strings)
      *
+     * @see Url::getCommon()
+     *
      * @return string   string with input fields
      *
-     * @access public
+     * @access  public
      */
     public static function getHiddenInputs(
         $db = '',
@@ -41,6 +38,7 @@ class Url
         $indent = 0,
         $skip = []
     ) {
+        /** @var Config $PMA_Config */
         global $PMA_Config;
 
         if (is_array($db)) {
@@ -76,7 +74,7 @@ class Url
             }
         }
 
-        return self::getHiddenFields($params);
+        return Url::getHiddenFields($params);
     }
 
     /**
@@ -125,7 +123,7 @@ class Url
             }
 
             if (is_array($value)) {
-                $fields .= self::getHiddenFields($value, $name, true);
+                $fields .= Url::getHiddenFields($value, $name, true);
             } else {
                 // do not generate an ending "\n" because
                 // Url::getHiddenInputs() is sometimes called
@@ -165,13 +163,12 @@ class Url
      * @param string $divider optional character to use instead of '?'
      *
      * @return string   string with URL parameters
-     *
-     * @access public
+     * @access  public
      */
     public static function getCommon($params = [], $divider = '?')
     {
         return htmlspecialchars(
-            self::getCommonRaw($params, $divider)
+            Url::getCommonRaw($params, $divider)
         );
     }
 
@@ -202,14 +199,13 @@ class Url
      * @param string $divider optional character to use instead of '?'
      *
      * @return string   string with URL parameters
-     *
-     * @access public
+     * @access  public
      */
     public static function getCommonRaw($params = [], $divider = '?')
     {
+        /** @var Config $PMA_Config */
         global $PMA_Config;
-
-        $separator = self::getArgSeparator();
+        $separator = Url::getArgSeparator();
 
         // avoid overwriting when creating navi panel links to servers
         if (isset($GLOBALS['server'])
@@ -220,15 +216,13 @@ class Url
             $params['server'] = $GLOBALS['server'];
         }
 
-        // Can be null when the user is missing an extension.
-        // See: Core::checkExtensions()
-        if ($PMA_Config !== null && empty($PMA_Config->getCookie('pma_lang')) && ! empty($GLOBALS['lang'])) {
+        if (empty($PMA_Config->getCookie('pma_lang')) && ! empty($GLOBALS['lang'])) {
             $params['lang'] = $GLOBALS['lang'];
         }
 
         $query = http_build_query($params, '', $separator);
 
-        if (($divider !== '?' && $divider !== '&') || strlen($query) > 0) {
+        if ($divider != '?' || strlen($query) > 0) {
             return $divider . $query;
         }
 
@@ -245,15 +239,14 @@ class Url
      *                       currently 'none' or 'html'
      *
      * @return string  character used for separating url parts usually ; or &
-     *
-     * @access public
+     * @access  public
      */
     public static function getArgSeparator($encode = 'none')
     {
         static $separator = null;
         static $html_separator = null;
 
-        if ($separator === null) {
+        if (null === $separator) {
             // use separators defined by php, but prefer ';'
             // as recommended by W3C
             // (see https://www.w3.org/TR/1999/REC-html401-19991224/appendix
@@ -277,14 +270,5 @@ class Url
             default:
                 return $separator;
         }
-    }
-
-    /**
-     * @param string $route                Route to use
-     * @param array  $additionalParameters Additional URL parameters
-     */
-    public static function getFromRoute(string $route, array $additionalParameters = []): string
-    {
-        return 'index.php?route=' . $route . self::getCommon($additionalParameters, '&');
     }
 }

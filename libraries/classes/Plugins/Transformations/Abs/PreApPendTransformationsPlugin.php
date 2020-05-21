@@ -1,6 +1,10 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Abstract class for the prepend/append transformations plugins
+ *
+ * @package    PhpMyAdmin-Transformations
+ * @subpackage PreApPend
  */
 declare(strict_types=1);
 
@@ -8,10 +12,12 @@ namespace PhpMyAdmin\Plugins\Transformations\Abs;
 
 use PhpMyAdmin\Plugins\TransformationsPlugin;
 use stdClass;
-use function htmlspecialchars;
 
 /**
  * Provides common methods for all of the prepend/append transformations plugins.
+ *
+ * @package    PhpMyAdmin-Transformations
+ * @subpackage PreApPend
  */
 abstract class PreApPendTransformationsPlugin extends TransformationsPlugin
 {
@@ -57,6 +63,6 @@ abstract class PreApPendTransformationsPlugin extends TransformationsPlugin
      */
     public static function getName()
     {
-        return 'PreApPend';
+        return "PreApPend";
     }
 }

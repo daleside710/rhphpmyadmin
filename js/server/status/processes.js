@@ -1,3 +1,4 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Server Status Processes
  *
@@ -27,7 +28,8 @@ var processList = {
     init: function () {
         processList.setRefreshLabel();
         if (processList.refreshUrl === null) {
-            processList.refreshUrl = 'index.php?route=/server/status/processes/refresh';
+            processList.refreshUrl = 'server_status_processes.php' +
+                CommonParams.get('common_query');
         }
         if (processList.refreshInterval === null) {
             processList.refreshInterval = $('#id_refreshRate').val();
@@ -58,13 +60,8 @@ var processList = {
                 // As we just removed a row, reapply odd-even classes
                 // to keep table stripes consistent
                 var $tableProcessListTr = $('#tableprocesslist').find('> tbody > tr');
-                $tableProcessListTr.each(function (index) {
-                    if (index >= 0 && index % 2 === 0) {
-                        $(this).removeClass('odd').addClass('even');
-                    } else if (index >= 0 && index % 2 !== 0) {
-                        $(this).removeClass('even').addClass('odd');
-                    }
-                });
+                $tableProcessListTr.filter(':even').removeClass('odd').addClass('even');
+                $tableProcessListTr.filter(':odd').removeClass('even').addClass('odd');
                 // Show process killed message
                 Functions.ajaxShowMessage(data.message, false);
             } else {
@@ -145,7 +142,7 @@ var processList = {
      * @return urlParams - url parameters with autoRefresh request
      */
     getUrlParams: function () {
-        var urlParams = { 'ajax_request': true };
+        var urlParams = { 'ajax_request': true, 'refresh': true };
         if ($('#showExecuting').is(':checked')) {
             urlParams.showExecuting = true;
             return urlParams;

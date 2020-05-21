@@ -1,19 +1,24 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * JavaScript management
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin;
 
-use function defined;
-use function md5;
-use function strpos;
+use PhpMyAdmin\Header;
+use PhpMyAdmin\Sanitize;
+use PhpMyAdmin\Url;
 
 /**
  * Collects information about which JavaScript
  * files and objects are necessary to render
  * the page and generates the relevant code.
+ *
+ * @package PhpMyAdmin
  */
 class Scripts
 {
@@ -32,11 +37,14 @@ class Scripts
      */
     private $_code;
 
-    /** @var Template */
+    /**
+     * @var Template
+     */
     private $template;
 
     /**
      * Generates new Scripts objects
+     *
      */
     public function __construct()
     {
@@ -115,7 +123,7 @@ class Scripts
      */
     public function addCode($code)
     {
-        $this->_code .= $code . "\n";
+        $this->_code .= "$code\n";
     }
 
     /**
@@ -129,7 +137,7 @@ class Scripts
         $retval = [];
         foreach ($this->_files as $file) {
             //If filename contains a "?", continue.
-            if (strpos($file['filename'], '?') !== false) {
+            if (strpos($file['filename'], "?") !== false) {
                 continue;
             }
             $retval[] = [
@@ -137,7 +145,6 @@ class Scripts
                 'fire' => $file['has_onload'],
             ];
         }
-
         return $retval;
     }
 
@@ -148,10 +155,7 @@ class Scripts
      */
     public function getDisplay()
     {
-        $baseDir = defined('PMA_PATH_TO_BASEDIR') ? PMA_PATH_TO_BASEDIR : '';
-
         return $this->template->render('scripts', [
-            'base_dir' => $baseDir,
             'files' => $this->_files,
             'version' => PMA_VERSION,
             'code' => $this->_code,

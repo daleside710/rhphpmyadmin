@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * hold PhpMyAdmin\Twig\TransformationsExtension class
+ *
+ * @package PhpMyAdmin\Twig
  */
 declare(strict_types=1);
 
@@ -10,6 +13,11 @@ use PhpMyAdmin\Transformations;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
+/**
+ * Class TransformationsExtension
+ *
+ * @package PhpMyAdmin\Twig
+ */
 class TransformationsExtension extends AbstractExtension
 {
     /**

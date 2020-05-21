@@ -1,6 +1,10 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Abstract class for the date format transformations plugins
+ *
+ * @package    PhpMyAdmin-Transformations
+ * @subpackage DateFormat
  */
 declare(strict_types=1);
 
@@ -10,18 +14,11 @@ use PhpMyAdmin\Plugins\TransformationsPlugin;
 use PhpMyAdmin\Sanitize;
 use PhpMyAdmin\Util;
 use stdClass;
-use function checkdate;
-use function gmdate;
-use function htmlspecialchars;
-use function mb_strlen;
-use function mb_strtolower;
-use function mb_substr;
-use function mktime;
-use function preg_match;
-use function strtotime;
 
 /**
  * Provides common methods for all of the date format transformations plugins.
+ *
+ * @package PhpMyAdmin
  */
 abstract class DateFormatTransformationsPlugin extends TransformationsPlugin
 {
@@ -140,7 +137,6 @@ abstract class DateFormatTransformationsPlugin extends TransformationsPlugin
             } else {
                 $text = 'INVALID DATE TYPE';
             }
-
             return '<dfn onclick="alert(\'' . Sanitize::jsFormat($source, false) . '\');" title="'
                 . htmlspecialchars((string) $source) . '">' . htmlspecialchars((string) $text) . '</dfn>';
         }
@@ -157,6 +153,6 @@ abstract class DateFormatTransformationsPlugin extends TransformationsPlugin
      */
     public static function getName()
     {
-        return 'Date Format';
+        return "Date Format";
     }
 }

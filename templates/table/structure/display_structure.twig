@@ -1,7 +1,6 @@
 {% extends 'table/page_with_secondary_tabs.twig' %}
 {% block content %}
-<h1 class="d-none d-print-block">{{table}}</h1>
-<form method="post" action="{{ url('/table/structure') }}" name="fieldsForm" id="fieldsForm"
+<form method="post" action="tbl_structure.php" name="fieldsForm" id="fieldsForm"
     class="ajax{{ hide_structure_actions ? ' HideStructureActions' }}">
     {{ get_hidden_inputs(db, table) }}
     <input type="hidden" name="table_type" value=
@@ -49,7 +48,7 @@
             {# Underline commented fields and display a hover-title (CSS only) #}
 
         <tr>
-            <td class="text-center print_ignore">
+            <td class="center print_ignore">
                 <input type="checkbox" class="checkall" name="selected_fld[]" value="{{ row['Field'] }}" id="checkbox_row_{{ rownum }}">
             </td>
             <td class="right">{{ rownum }}</td>
@@ -68,7 +67,7 @@
                     {{ extracted_columnspec['displayed_type']|raw }}
                     {% if relation_commwork and relation_mimework and browse_mime
                         and mime_map[row['Field']]['mimetype'] is defined %}
-                        <br>{% trans 'Media type:' %} {{ mime_map[row['Field']]['mimetype']|replace({'_': '/'})|lower }}
+                        <br>{% trans 'Media (MIME) type:' %} {{ mime_map[row['Field']]['mimetype']|replace({'_': '/'})|lower }}
                     {% endif %}
                 </bdo>
             </td>
@@ -99,18 +98,14 @@
             {% endif %}
             <td class="nowrap">{{ row['Extra']|upper }}</td>
             {% if not tbl_is_view and not db_is_system_schema %}
-                <td class="edit text-center print_ignore">
-                    <a class="change_column_anchor ajax" href="{{ url('/table/structure', url_params|merge({
-                      'db': db,
-                      'table': table,
-                      'field': row['Field'],
-                      'change_column': 1
-                    })) }}">
+                <td class="edit center print_ignore">
+                    <a class="change_column_anchor ajax" href="tbl_structure.php
+                        {{- url_query }}&amp;field={{ row['Field']|url_encode }}&amp;change_column=1">
                         {{ titles['Change']|raw }}
                     </a>
                 </td>
-                <td class="drop text-center print_ignore">
-                    <a class="drop_column_anchor ajax" href="{{ url('/sql') }}" data-post="{{ url_query }}&amp;sql_query=
+                <td class="drop center print_ignore">
+                    <a class="drop_column_anchor ajax" href="sql.php" data-post="{{ url_query }}&amp;sql_query=
                         {{- ('ALTER TABLE ' ~ backquote(table)
                             ~ ' DROP ' ~ backquote(row['Field']) ~ ';')|url_encode -}}
                         &amp;dropped_column={{ row['Field']|url_encode }}&amp;purge=1&amp;message_to_show=
@@ -220,7 +215,7 @@
                                 or tbl_storage_engine == 'MARIA'
                                 or (tbl_storage_engine == 'INNODB' and mysql_int_version >= 50604)
                             ) and ('text' in type or 'char' in type) %}
-                            <a rel="samepage" class="ajax add_key add_fulltext_anchor" href="{{ url('/table/structure') }}"
+                            <a rel="samepage" class="ajax add_key add_fulltext_anchor" href="tbl_structure.php"
                                 data-post="{{- url_query|raw }}&amp;add_key=1&amp;sql_query=
                                 {{- ('ALTER TABLE ' ~ backquote(table)
                                     ~ ' ADD FULLTEXT(' ~ backquote(row['Field'])
@@ -235,7 +230,7 @@
 
                         {# Distinct value action #}
                         <li class="browse nowrap">
-                            <a href="{{ url('/sql') }}" data-post="{{ url_query|raw }}&amp;sql_query=
+                            <a href="sql.php" data-post="{{ url_query|raw }}&amp;sql_query=
                                 {{- ('SELECT COUNT(*) AS ' ~ backquote('Rows'|trans)
                                     ~ ', ' ~ backquote(row['Field'])
                                     ~ ' FROM ' ~ backquote(table)
@@ -367,7 +362,7 @@
 <hr class="print_ignore">
 <div id="move_columns_dialog" class="hide" title="{% trans 'Move columns' %}">
     <p>{% trans 'Move the columns by dragging them up and down.' %}</p>
-    <form action="{{ url('/table/structure') }}" name="move_column_form" id="move_column_form">
+    <form action="tbl_structure.php" name="move_column_form" id="move_column_form">
         <div>
             {{ get_hidden_inputs(db, table) }}
             <ul></ul>
@@ -377,8 +372,9 @@
 {# Work on the table #}
 <div id="structure-action-links">
     {% if tbl_is_view and not db_is_system_schema %}
+        {% set edit_view_url = 'view_create.php' ~ edit_view_url %}
         {{ link_or_button(
-            url('/view/create', {'db': db, 'table': table}),
+            edit_view_url,
             get_icon('b_edit', 'Edit view'|trans, true)
         ) }}
     {% endif %}
@@ -386,7 +382,7 @@
     {% if not tbl_is_view and not db_is_system_schema %}
         {# Only display propose table structure for MySQL < 8.0 #}
         {% if mysql_int_version < 80000 or is_mariadb %}
-          <a href="{{ url('/sql') }}" data-post="{{ url_query|raw }}&amp;session_max_rows=all&amp;sql_query=
+          <a href="sql.php" data-post="{{ url_query|raw }}&amp;session_max_rows=all&amp;sql_query=
               {{- ('SELECT * FROM ' ~ backquote(table) ~ ' PROCEDURE ANALYSE()')|url_encode -}}
               " style="margin-right: 0;">
               {{ get_icon(
@@ -398,27 +394,27 @@
           {{ show_mysql_docu('procedure_analyse') }}
         {% endif %}
         {% if is_active %}
-            <a href="{{ url('/table/tracking', url_params) }}">
+            <a href="tbl_tracking.php{{ url_query|raw }}">
                 {{ get_icon('eye', 'Track table'|trans, true) }}
             </a>
         {% endif %}
         <a href="#" id="move_columns_anchor">
             {{ get_icon('b_move', 'Move columns'|trans, true) }}
         </a>
-        <a href="{{ url('/normalization', url_params) }}">
+        <a href="normalization.php{{ url_query|raw }}">
             {{ get_icon('normalize', 'Normalize'|trans, true) }}
         </a>
     {% endif %}
     {% if tbl_is_view and not db_is_system_schema %}
         {% if is_active %}
-            <a href="{{ url('/table/tracking', url_params) }}">
+            <a href="tbl_tracking.php{{ url_query|raw }}">
                 {{ get_icon('eye', 'Track view'|trans, true) }}
             </a>
         {% endif %}
     {% endif %}
 </div>
 {% if not tbl_is_view and not db_is_system_schema %}
-    <form method="post" action="{{ url('/table/add-field') }}" id="addColumns" name="addColumns">
+    <form method="post" action="tbl_addfield.php" id="addColumns" name="addColumns">
         {{ get_hidden_inputs(db, table) }}
         {% if show_icons('ActionLinksMode') %}
             {{ get_image('b_insrow', 'Add column'|trans) }}&nbsp;
@@ -444,109 +440,10 @@
     </form>
 {% endif %}
 
-{% if not tbl_is_view and not db_is_system_schema and tbl_storage_engine != 'ARCHIVE' %}
-  <div id="index_div" class="w-100 ajax">
-    <fieldset class="index_info">
-      <legend id="index_header">
-        {% trans 'Indexes' %}
-        {{ show_mysql_docu('optimizing-database-structure') }}
-      </legend>
-
-      {% if indexes is not empty %}
-        {{ indexes_duplicates|raw }}
-
-        <div class="responsivetable jsresponsive">
-          <table id="table_index">
-            <thead>
-              <tr>
-                <th colspan="2" class="print_ignore">{% trans 'Action' %}</th>
-                <th>{% trans 'Keyname' %}</th>
-                <th>{% trans 'Type' %}</th>
-                <th>{% trans 'Unique' %}</th>
-                <th>{% trans 'Packed' %}</th>
-                <th>{% trans 'Column' %}</th>
-                <th>{% trans 'Cardinality' %}</th>
-                <th>{% trans 'Collation' %}</th>
-                <th>{% trans 'Null' %}</th>
-                <th>{% trans 'Comment' %}</th>
-              </tr>
-            </thead>
-
-            {% for index in indexes %}
-              <tbody class="row_span">
-                {% set columns_count = index.getColumnCount() %}
-                <tr class="noclick">
-                <td rowspan="{{ columns_count }}" class="edit_index print_ignore ajax">
-                  <a class="ajax" href="{{ url('/table/indexes') }}" data-post="{{ get_common(url_params|merge({'index': index.getName()}), '') }}">
-                    {{ get_icon('b_edit', 'Edit'|trans) }}
-                  </a>
-                </td>
-                <td rowspan="{{ columns_count }}" class="print_ignore">
-                  {% if index.getName() == 'PRIMARY' %}
-                    {% set index_params = {
-                      'sql_query': 'ALTER TABLE ' ~ backquote(table) ~ ' DROP PRIMARY KEY;',
-                      'message_to_show': 'The primary key has been dropped.'|trans
-                    } %}
-                  {% else %}
-                    {% set index_params = {
-                      'sql_query': 'ALTER TABLE ' ~ backquote(table) ~ ' DROP INDEX ' ~ backquote(index.getName()) ~ ';',
-                      'message_to_show': 'Index %s has been dropped.'|trans|format(index.getName())
-                    } %}
-                  {% endif %}
-
-                  <input type="hidden" class="drop_primary_key_index_msg" value="{{ index_params.sql_query|js_format(false) }}">
-                  {{ link_or_button(
-                    url('/sql', url_params|merge(index_params)),
-                    get_icon('b_drop', 'Drop'|trans),
-                    {'class': 'drop_primary_key_index_anchor ajax'}
-                  ) }}
-                </td>
-                <th rowspan="{{ columns_count }}">{{ index.getName() }}</th>
-                <td rowspan="{{ columns_count }}">{{ index.getType()|default(index.getChoice()) }}</td>
-                <td rowspan="{{ columns_count }}">{{ index.isUnique() ? 'Yes'|trans : 'No'|trans }}</td>
-                <td rowspan="{{ columns_count }}">{{ index.isPacked()|raw }}</td>
-
-                {% for column in index.getColumns() %}
-                  {% if column.getSeqInIndex() > 1 %}
-                    <tr class="noclick">
-                  {% endif %}
-                  <td>
-                    {{ column.getName() }}
-                    {% if column.getSubPart() is not empty %}
-                      ({{ column.getSubPart() }})
-                    {% endif %}
-                  </td>
-                  <td>{{ column.getCardinality() }}</td>
-                  <td>{{ column.getCollation() }}</td>
-                  <td>{{ column.getNull(true) }}</td>
-
-                  {% if column.getSeqInIndex() == 1 %}
-                    <td rowspan="{{ columns_count }}">{{ index.getComments() }}</td>
-                  {% endif %}
-                  </tr>
-                {% endfor %}
-              </tbody>
-            {% endfor %}
-          </table>
-        </div>
-      {% else %}
-        <div class="no_indexes_defined">{{ 'No index defined!'|trans|notice }}</div>
-      {% endif %}
-    </fieldset>
-
-    <fieldset class="tblFooters print_ignore text-left">
-      <form action="{{ url('/table/indexes') }}" method="post">
-        {{ get_hidden_inputs(db, table) }}
-        <input type="hidden" name="create_index" value="1">
-
-        {% apply format('<input class="mx-2" type="number" name="added_fields" value="1" min="1" required>')|raw %}
-          {% trans %}Create an index on %s columns{% endtrans %}
-        {% endapply %}
-
-        <input class="btn btn-primary add_index ajax" type="submit" value="{% trans 'Go' %}">
-      </form>
-    </fieldset>
-  </div>
+{# Displays indexes #}
+{% if not tbl_is_view and not db_is_system_schema
+    and 'ARCHIVE' !=  tbl_storage_engine %}
+    {{ displayIndexesHtml|raw }}
 {% endif %}
 
 {# Display partition details #}
@@ -576,12 +473,15 @@
             {% set action_icons = action_icons|merge({'DROP': get_icon('b_drop', 'Drop'|trans)}) %}
         {% endif %}
 
-        <div id="partitions-2"{% if default_sliders_state != 'disabled' -%}
-            {{- default_sliders_state == 'closed' ? ' style="display: none; overflow:auto;"' }} class="pma_auto_slider" title="{% trans 'Partitions' %}"
-        {%- endif %}>
+        {# open Slider Effect div #}
+        {% include 'div_for_slider_effect.twig' with {
+            'id': 'partitions-2',
+            'message': 'Partitions'|trans,
+            'initial_sliders_state': default_sliders_state
+        } only %}
 
         {% set remove_sql = 'ALTER TABLE ' ~ backquote(table) ~ ' REMOVE PARTITIONING' %}
-        {% set remove_url = url('/sql') ~ url_query ~ '&sql_query=' ~ remove_sql|url_encode %}
+        {% set remove_url = 'sql.php' ~ url_query ~ '&sql_query=' ~ remove_sql|url_encode %}
 
         {% include 'table/structure/display_partitions.twig' with {
             'db': db,
@@ -604,6 +504,7 @@
             'table': table
         } only %}
     {% endif %}
+    {# For closing Slider effect div #}
     </div>
 {% endif %}
 

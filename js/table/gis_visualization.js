@@ -1,3 +1,4 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * @fileoverview    functions used for visualizing GIS data
  *
@@ -99,7 +100,7 @@ function loadSVG () {
     });
 
     // Removes the second SVG element unnecessarily added due to the above command
-    $placeholder.find(document.querySelectorAll('svg:nth-child(2)')).remove();
+    $placeholder.find('svg:nth-child(2)').remove();
 }
 
 /**

@@ -1,13 +1,18 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * User preferences form
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Config\Forms\Setup;
 
-use function array_diff;
-
+/**
+ * Class FeaturesForm
+ * @package PhpMyAdmin\Config\Forms\Setup
+ */
 class FeaturesForm extends \PhpMyAdmin\Config\Forms\User\FeaturesForm
 {
     /**
@@ -49,7 +54,6 @@ class FeaturesForm extends \PhpMyAdmin\Config\Forms\User\FeaturesForm
             'LoginCookieDeleteAll',
             'CaptchaLoginPublicKey',
             'CaptchaLoginPrivateKey',
-            'CaptchaSiteVerifyURL',
         ];
         $result['Developer'] = [
             'UserprefsDeveloperTab',
@@ -67,9 +71,7 @@ class FeaturesForm extends \PhpMyAdmin\Config\Forms\User\FeaturesForm
             'AllowThirdPartyFraming',
             'ZeroConf',
         ];
-
         return $result;
-
         // phpcs:enable
     }
 }

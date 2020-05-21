@@ -1,39 +1,36 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Holds the PhpMyAdmin\Controllers\Server\VariablesController
+ *
+ * @package PhpMyAdmin\Controllers
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Controllers\Server;
 
-use PhpMyAdmin\Common;
 use PhpMyAdmin\Controllers\AbstractController;
-use PhpMyAdmin\Html\Generator;
 use PhpMyAdmin\Util;
 use Williamdes\MariaDBMySQLKBS\KBException;
 use Williamdes\MariaDBMySQLKBS\Search as KBSearch;
-use function header;
-use function htmlspecialchars;
-use function implode;
-use function in_array;
-use function is_numeric;
-use function mb_strtolower;
-use function pow;
-use function preg_match;
-use function str_replace;
-use function strtolower;
-use function trim;
 
 /**
  * Handles viewing and editing server variables
+ *
+ * @package PhpMyAdmin\Controllers
  */
 class VariablesController extends AbstractController
 {
-    public function index(): void
+    /**
+     * Index action
+     *
+     * @param array $params Request parameters
+     *
+     * @return string
+     */
+    public function index(array $params): string
     {
-        $params = ['filter' => $_GET['filter'] ?? null];
-
-        Common::server();
+        include ROOT_PATH . 'libraries/server_common.inc.php';
 
         $filterValue = ! empty($params['filter']) ? $params['filter'] : '';
 
@@ -58,17 +55,15 @@ class VariablesController extends AbstractController
             foreach ($serverVars as $name => $value) {
                 $hasSessionValue = isset($serverVarsSession[$name])
                     && $serverVarsSession[$name] !== $value;
-                $docLink = Generator::linkToVarDocumentation(
+                $docLink = Util::linkToVarDocumentation(
                     $name,
                     $this->dbi->isMariaDB(),
                     str_replace('_', '&nbsp;', $name)
                 );
 
-                [$formattedValue, $isEscaped] = $this->formatVariable($name, $value);
+                list($formattedValue, $isEscaped) = $this->formatVariable($name, $value);
                 if ($hasSessionValue) {
-                    [
-                        $sessionFormattedValue,
-                    ] = $this->formatVariable(
+                    list($sessionFormattedValue, ) = $this->formatVariable(
                         $name,
                         $serverVarsSession[$name]
                     );
@@ -86,7 +81,7 @@ class VariablesController extends AbstractController
             }
         }
 
-        $this->render('server/variables/index', [
+        return $this->template->render('server/variables/index', [
             'variables' => $variables,
             'filter_value' => $filterValue,
             'is_superuser' => $this->dbi->isSuperuser(),
@@ -98,57 +93,48 @@ class VariablesController extends AbstractController
      * Handle the AJAX request for a single variable value
      *
      * @param array $params Request parameters
+     *
+     * @return array
      */
-    public function getValue(array $params): void
+    public function getValue(array $params): array
     {
-        if (! $this->response->isAjax()) {
-            return;
-        }
-
         // Send with correct charset
         header('Content-Type: text/html; charset=UTF-8');
         // Do not use double quotes inside the query to avoid a problem
         // when server is running in ANSI_QUOTES sql_mode
         $varValue = $this->dbi->fetchSingleRow(
             'SHOW GLOBAL VARIABLES WHERE Variable_name=\''
-            . $this->dbi->escapeString($params['name']) . '\';',
+            . $this->dbi->escapeString($params['varName']) . '\';',
             'NUM'
         );
 
         $json = [];
         try {
-            $type = KBSearch::getVariableType($params['name']);
+            $type = KBSearch::getVariableType($params['varName']);
             if ($type === 'byte') {
                 $json['message'] = implode(
                     ' ',
                     Util::formatByteDown($varValue[1], 3, 3)
                 );
             } else {
-                throw new KBException('Not a type=byte');
+                throw new KBException("Not a type=byte");
             }
         } catch (KBException $e) {
             $json['message'] = $varValue[1];
         }
 
-        $this->response->addJSON($json);
+        return $json;
     }
 
     /**
      * Handle the AJAX request for setting value for a single variable
      *
-     * @param array $vars Request parameters
+     * @param array $params Request parameters
+     *
+     * @return array
      */
-    public function setValue(array $vars): void
+    public function setValue(array $params): array
     {
-        $params = [
-            'varName' => $vars['name'],
-            'varValue' => $_POST['varValue'] ?? null,
-        ];
-
-        if (! $this->response->isAjax()) {
-            return;
-        }
-
         $value = $params['varValue'];
         $matches = [];
         try {
@@ -166,12 +152,12 @@ class VariablesController extends AbstractController
                     'gb' => 3,
                     'gib' => 3,
                 ];
-                $value = (float) $matches[1] * pow(
+                $value = floatval($matches[1]) * pow(
                     1024,
                     $exp[mb_strtolower($matches[3])]
                 );
             } else {
-                throw new KBException('Not a type=byte or regex not matching');
+                throw new KBException("Not a type=byte or regex not matching");
             }
         } catch (KBException $e) {
             $value = $this->dbi->escapeString($value);
@@ -182,7 +168,7 @@ class VariablesController extends AbstractController
         }
 
         $json = [];
-        if (! preg_match('/[^a-zA-Z0-9_]+/', $params['varName'])
+        if (! preg_match("/[^a-zA-Z0-9_]+/", $params['varName'])
             && $this->dbi->query(
                 'SET GLOBAL ' . $params['varName'] . ' = ' . $value
             )
@@ -194,7 +180,7 @@ class VariablesController extends AbstractController
                 . '";',
                 'NUM'
             );
-            [$formattedValue, $isHtmlFormatted] = $this->formatVariable(
+            list($formattedValue, $isHtmlFormatted) = $this->formatVariable(
                 $params['varName'],
                 $varValue[1]
             );
@@ -209,14 +195,14 @@ class VariablesController extends AbstractController
             $json['error'] = __('Setting variable failed');
         }
 
-        $this->response->addJSON($json);
+        return $json;
     }
 
     /**
      * Format Variable
      *
-     * @param string $name  variable name
-     * @param int    $value variable value
+     * @param string  $name  variable name
+     * @param integer $value variable value
      *
      * @return array formatted string and bool if string is HTML formatted
      */
@@ -230,17 +216,14 @@ class VariablesController extends AbstractController
                 $type = KBSearch::getVariableType($name);
                 if ($type === 'byte') {
                     $isHtmlFormatted = true;
-                    $formattedValue = trim(
-                        $this->template->render(
-                            'server/variables/format_variable',
-                            [
-                                'valueTitle' => Util::formatNumber($value, 0),
-                                'value' => implode(' ', Util::formatByteDown($value, 3, 3)),
-                            ]
+                    $formattedValue = '<abbr title="'
+                        . htmlspecialchars(Util::formatNumber($value, 0)) . '">'
+                        . htmlspecialchars(
+                            implode(' ', Util::formatByteDown($value, 3, 3))
                         )
-                    );
+                        . '</abbr>';
                 } else {
-                    throw new KBException('Not a type=byte or regex not matching');
+                    throw new KBException("Not a type=byte or regex not matching");
                 }
             } catch (KBException $e) {
                 $formattedValue = Util::formatNumber($value, 0);

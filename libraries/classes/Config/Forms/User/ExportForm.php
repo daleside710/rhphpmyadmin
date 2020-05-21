@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * User preferences form
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
@@ -8,6 +11,10 @@ namespace PhpMyAdmin\Config\Forms\User;
 
 use PhpMyAdmin\Config\Forms\BaseForm;
 
+/**
+ * Class ExportForm
+ * @package PhpMyAdmin\Config\Forms\User
+ */
 class ExportForm extends BaseForm
 {
     /**
@@ -140,7 +147,6 @@ class ExportForm extends BaseForm
                 'Export/texytext_columns',
             ],
         ];
-
         // phpcs:enable
     }
 

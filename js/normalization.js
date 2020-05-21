@@ -1,3 +1,4 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * @fileoverview   events handling from normalization page
  * @name            normalization
@@ -9,7 +10,7 @@
 /* global centralColumnList:writable */ // js/functions.js
 
 /**
- * AJAX scripts for normalization
+ * AJAX scripts for normalization.php
  *
  */
 
@@ -19,7 +20,7 @@ var dataParsed = null;
 
 function appendHtmlColumnsList () {
     $.post(
-        'index.php?route=/normalization',
+        'normalization.php',
         {
             'ajax_request': true,
             'db': CommonParams.get('db'),
@@ -41,7 +42,7 @@ function goTo3NFStep1 (newTables) {
         tables = [CommonParams.get('table')];
     }
     $.post(
-        'index.php?route=/normalization',
+        'normalization.php',
         {
             'ajax_request': true,
             'db': CommonParams.get('db'),
@@ -77,7 +78,7 @@ function goTo3NFStep1 (newTables) {
 
 function goTo2NFStep1 () {
     $.post(
-        'index.php?route=/normalization',
+        'normalization.php',
         {
             'ajax_request': true,
             'db': CommonParams.get('db'),
@@ -127,7 +128,7 @@ function goToFinish1NF () {
 // eslint-disable-next-line no-unused-vars
 function goToStep4 () {
     $.post(
-        'index.php?route=/normalization',
+        'normalization.php',
         {
             'ajax_request': true,
             'db': CommonParams.get('db'),
@@ -150,7 +151,7 @@ function goToStep4 () {
 
 function goToStep3 () {
     $.post(
-        'index.php?route=/normalization',
+        'normalization.php',
         {
             'ajax_request': true,
             'db': CommonParams.get('db'),
@@ -174,7 +175,7 @@ function goToStep3 () {
 
 function goToStep2 (extra) {
     $.post(
-        'index.php?route=/normalization',
+        'normalization.php',
         {
             'ajax_request': true,
             'db': CommonParams.get('db'),
@@ -222,7 +223,7 @@ function goTo2NFFinish (pd) {
         'createNewTables2NF':1 };
     $.ajax({
         type: 'POST',
-        url: 'index.php?route=/normalization',
+        url: 'normalization.php',
         data: datastring,
         async:false,
         success: function (data) {
@@ -267,7 +268,7 @@ function goTo3NFFinish (newTables) {
         'createNewTables3NF':1 };
     $.ajax({
         type: 'POST',
-        url: 'index.php?route=/normalization',
+        url: 'normalization.php',
         data: datastring,
         async:false,
         success: function (data) {
@@ -318,7 +319,7 @@ function goTo2NFStep2 (pd, primaryKey) {
             'getNewTables2NF':1 };
         $.ajax({
             type: 'POST',
-            url: 'index.php?route=/normalization',
+            url: 'normalization.php',
             data: datastring,
             async:false,
             success: function (data) {
@@ -331,7 +332,7 @@ function goTo2NFStep2 (pd, primaryKey) {
         });
     }
     $('#mainContent #extra').html(extra);
-    $('.tblFooters').html('<input type="button" class="btn btn-primary" value="' + Messages.strBack + '" id="backEditPd"><input type="button" class="btn btn-primary" id="goTo2NFFinish" value="' + Messages.strGo + '">');
+    $('.tblFooters').html('<input type="button" value="' + Messages.strBack + '" id="backEditPd"><input type="button" id="goTo2NFFinish" value="' + Messages.strGo + '">');
     $('#goTo2NFFinish').on('click', function () {
         goTo2NFFinish(pd);
     });
@@ -367,7 +368,7 @@ function goTo3NFStep2 (pd, tablesTds) {
             'getNewTables3NF':1 };
         $.ajax({
             type: 'POST',
-            url: 'index.php?route=/normalization',
+            url: 'normalization.php',
             data: datastring,
             async:false,
             success: function (data) {
@@ -381,7 +382,7 @@ function goTo3NFStep2 (pd, tablesTds) {
         });
     }
     $('#mainContent #extra').html(extra);
-    $('.tblFooters').html('<input type="button" class="btn btn-primary" value="' + Messages.strBack + '" id="backEditPd"><input type="button" class="btn btn-primary" id="goTo3NFFinish" value="' + Messages.strGo + '">');
+    $('.tblFooters').html('<input type="button" value="' + Messages.strBack + '" id="backEditPd"><input type="button" id="goTo3NFFinish" value="' + Messages.strGo + '">');
     $('#goTo3NFFinish').on('click', function () {
         if (!pdFound) {
             goTo3NFFinish([]);
@@ -463,7 +464,7 @@ function moveRepeatingGroup (repeatingCols) {
     };
     $.ajax({
         type: 'POST',
-        url: 'index.php?route=/normalization',
+        url: 'normalization.php',
         data: datastring,
         async:false,
         success: function (data) {
@@ -509,7 +510,7 @@ AJAX.registerOnload('normalization.js', function () {
         }
         var numField = $('#numField').val();
         $.post(
-            'index.php?route=/normalization',
+            'normalization.php',
             {
                 'ajax_request': true,
                 'db': CommonParams.get('db'),
@@ -549,10 +550,10 @@ AJAX.registerOnload('normalization.js', function () {
         var argsep = CommonParams.get('arg_separator');
         var datastring = $('#newCols :input').serialize();
         datastring += argsep + 'ajax_request=1' + argsep + 'do_save_data=1' + argsep + 'field_where=last';
-        $.post('index.php?route=/table/add-field', datastring, function (data) {
+        $.post('tbl_addfield.php', datastring, function (data) {
             if (data.success) {
                 $.post(
-                    'index.php?route=/sql',
+                    'sql.php',
                     {
                         'ajax_request': true,
                         'db': CommonParams.get('db'),
@@ -582,7 +583,7 @@ AJAX.registerOnload('normalization.js', function () {
 
     $('#extra').on('click', '#addNewPrimary', function () {
         $.post(
-            'index.php?route=/normalization',
+            'normalization.php',
             {
                 'ajax_request': true,
                 'db': CommonParams.get('db'),
@@ -617,7 +618,7 @@ AJAX.registerOnload('normalization.js', function () {
         var datastring = $('#newCols :input').serialize();
         var argsep = CommonParams.get('arg_separator');
         datastring += argsep + 'field_key[0]=primary_0' + argsep + 'ajax_request=1' + argsep + 'do_save_data=1' + argsep + 'field_where=last';
-        $.post('index.php?route=/table/add-field', datastring, function (data) {
+        $.post('tbl_addfield.php', datastring, function (data) {
             if (data.success === true) {
                 $('#mainContent h4').html(Messages.strPrimaryKeyAdded);
                 $('#mainContent p').html(Messages.strToNextStep);
@@ -639,7 +640,7 @@ AJAX.registerOnload('normalization.js', function () {
         });
         dropQuery = dropQuery.slice(0, -2);
         $.post(
-            'index.php?route=/sql',
+            'sql.php',
             {
                 'ajax_request': true,
                 'db': CommonParams.get('db'),
@@ -664,7 +665,7 @@ AJAX.registerOnload('normalization.js', function () {
         });
 
         if (repeatingCols !== '') {
-            var newColName = $('#extra input[type=checkbox]:checked').first().val();
+            var newColName = $('#extra input[type=checkbox]:checked:first').val();
             repeatingCols = repeatingCols.slice(0, -2);
             var confirmStr = Functions.sprintf(Messages.strMoveRepeatingGroup, Functions.escapeHtml(repeatingCols), Functions.escapeHtml(CommonParams.get('table')));
             confirmStr += '<input type="text" name="repeatGroupTable" placeholder="' + Messages.strNewTablePlaceholder + '">' +
@@ -726,9 +727,9 @@ AJAX.registerOnload('normalization.js', function () {
             return false;
         }
         $('#newCols').insertAfter('#mainContent h4');
-        $('#newCols').html('<div class="text-center">' + Messages.strLoading + '<br>' + Messages.strWaitForPd + '</div>');
+        $('#newCols').html('<div class="center">' + Messages.strLoading + '<br>' + Messages.strWaitForPd + '</div>');
         $.post(
-            'index.php?route=/normalization',
+            'normalization.php',
             {
                 'ajax_request': true,
                 'db': CommonParams.get('db'),

@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Migration from home-made DI to Symfony DI
+ *
+ * @package PhpMyAdmin\Di
  */
 declare(strict_types=1);
 
@@ -11,6 +14,8 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
  * Migration from home-made DI to Symfony DI
+ *
+ * @package PhpMyAdmin\Di
  */
 class Migration
 {
@@ -29,11 +34,11 @@ class Migration
      */
     public static function getInstance(?ContainerBuilder $containerBuilder = null): self
     {
-        if (self::$instance !== null) {
+        if (null !== self::$instance) {
             return self::$instance;
         }
 
-        if ($containerBuilder === null) {
+        if (null === $containerBuilder) {
             throw new InvalidArgumentException('Container builder should be sent for ' . self::class . ' creation');
         }
 
@@ -41,6 +46,8 @@ class Migration
     }
 
     /**
+     * Migration constructor.
+     *
      * @param ContainerBuilder $containerBuilder ContainerBuilder object that should be used to store the data
      */
     protected function __construct(ContainerBuilder $containerBuilder)

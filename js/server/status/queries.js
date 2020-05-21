@@ -1,3 +1,4 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * @fileoverview    Javascript functions used in server status query page
  * @name            Server Status Query

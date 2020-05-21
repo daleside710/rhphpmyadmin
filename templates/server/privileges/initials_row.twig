@@ -6,7 +6,8 @@
                 <td>
                     <a class="ajax
                         {{- initial is defined and initial is same as(tmp_initial) ? ' active' -}}
-                        " href="{{ url('/server/privileges', {'initial': tmp_initial}) }}">
+                        " href="server_privileges.php
+                        {{- get_common({'initial': tmp_initial}) }}">
                         {{- tmp_initial|raw -}}
                     </a>
                 </td>
@@ -16,7 +17,8 @@
           {% endif %}
         {% endfor %}
         <td>
-            <a href="{{ url('/server/privileges', {'showall': 1}) }}" class="nowrap">
+            <a href="server_privileges.php
+                {{- get_common({'showall': 1}) }}" class="nowrap">
                 {% trans 'Show all' %}
             </a>
         </td>

@@ -1,18 +1,20 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Functionality for the navigation tree
+ *
+ * @package PhpMyAdmin-Navigation
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Navigation\Nodes;
 
-use PhpMyAdmin\Html\Generator;
-use PhpMyAdmin\Url;
-use function strlen;
-use function substr;
+use PhpMyAdmin\Util;
 
 /**
  * Represents a columns node in the navigation tree
+ *
+ * @package PhpMyAdmin-Navigation
  */
 class NodeColumn extends Node
 {
@@ -29,16 +31,14 @@ class NodeColumn extends Node
         $this->displayName = $this->getDisplayName($item);
 
         parent::__construct($item['name'], $type, $isGroup);
-        $this->icon = Generator::getImage($this->getColumnIcon($item['key']), __('Column'));
+        $this->icon = Util::getImage($this->getColumnIcon($item['key']), __('Column'));
         $this->links = [
-            'text' => Url::getFromRoute('/table/structure', [
-                'server' => $GLOBALS['server'],
-                'change_column' => 1,
-            ]) . '&amp;db=%3$s&amp;table=%2$s&amp;field=%1$s',
-            'icon' => Url::getFromRoute('/table/structure', [
-                'server' => $GLOBALS['server'],
-                'change_column' => 1,
-            ]) . '&amp;db=%3$s&amp;table=%2$s&amp;field=%1$s',
+            'text'  => 'tbl_structure.php?server=' . $GLOBALS['server']
+                . '&amp;db=%3$s&amp;table=%2$s&amp;field=%1$s'
+                . '&amp;change_column=1',
+            'icon'  => 'tbl_structure.php?server=' . $GLOBALS['server']
+                . '&amp;db=%3$s&amp;table=%2$s&amp;field=%1$s'
+                . '&amp;change_column=1',
             'title' => __('Structure'),
         ];
     }
@@ -63,7 +63,6 @@ class NodeColumn extends Node
                 $retval = 'pause';
                 break;
         }
-
         return $retval;
     }
 
@@ -85,8 +84,8 @@ class NodeColumn extends Node
                 $retval .= $this->getTruncateValue($key, $value);
             }
         }
-
-        return $retval . ')';
+        $retval .= ')';
+        return $retval;
     }
 
     /**

@@ -3,7 +3,6 @@
 {% block content %}
 
 {% if is_data_loaded %}
-<div class="row">
   <h3 id="serverstatusqueries">
     {% trans %}
       Questions since startup:
@@ -13,9 +12,7 @@
     {{ format_number(stats.total, 0) }}
     {{ show_mysql_docu('server-status-variables', false, null, null, 'statvar_Questions') }}
   </h3>
-</div>
 
-<div class="row">
   <ul>
     <li>ø {% trans 'per hour:' %} {{ format_number(stats.per_hour, 0) }}</li>
     <li>ø {% trans 'per minute:' %} {{ format_number(stats.per_minute, 0) }}</li>
@@ -23,10 +20,8 @@
       <li>ø {% trans 'per second:' %} {{ format_number(stats.per_second, 0) }}</li>
     {% endif %}
   </ul>
-</div>
 
-<div class="row">
-  <table id="serverstatusqueriesdetails" class="w-100 data sortable noclick col-md-4 col-12 ">
+  <table id="serverstatusqueriesdetails" class="width100 data sortable noclick">
     <colgroup>
       <col class="namecol">
       <col class="valuecol" span="3">
@@ -53,8 +48,7 @@
     </tbody>
   </table>
 
-  <div id="serverstatusquerieschart" class="w-100 col-12 col-md-6" data-chart="{{ chart|json_encode }}"></div>
-</div>
+  <div id="serverstatusquerieschart" class="width100" data-chart="{{ chart|json_encode }}"></div>
 {% else %}
   {{ 'Not enough privilege to view query statistics.'|trans|error }}
 {% endif %}

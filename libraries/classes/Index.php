@@ -1,18 +1,19 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * holds the database index class
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin;
 
-use function array_pop;
-use function count;
-use function htmlspecialchars;
-use function strlen;
-
 /**
  * Index manipulation class
+ *
+ * @package PhpMyAdmin
+ * @since   phpMyAdmin 3.0.0
  */
 class Index
 {
@@ -29,13 +30,19 @@ class Index
      */
     private static $_registry = [];
 
-    /** @var string The name of the schema */
+    /**
+     * @var string The name of the schema
+     */
     private $_schema = '';
 
-    /** @var string The name of the table */
+    /**
+     * @var string The name of the table
+     */
     private $_table = '';
 
-    /** @var string The name of the index */
+    /**
+     * @var string The name of the index
+     */
     private $_name = '';
 
     /**
@@ -74,7 +81,9 @@ class Index
      */
     private $_comment = '';
 
-    /** @var int 0 if the index cannot contain duplicates, 1 if it can. */
+    /**
+     * @var integer 0 if the index cannot contain duplicates, 1 if it can.
+     */
     private $_non_unique = 0;
 
     /**
@@ -99,6 +108,8 @@ class Index
     private $_parser = null;
 
     /**
+     * Constructor
+     *
      * @param array $params parameters
      */
     public function __construct(array $params = [])
@@ -117,18 +128,17 @@ class Index
      */
     public static function singleton($schema, $table, $index_name = '')
     {
-        self::_loadIndexes($table, $schema);
-        if (! isset(self::$_registry[$schema][$table][$index_name])) {
+        Index::_loadIndexes($table, $schema);
+        if (! isset(Index::$_registry[$schema][$table][$index_name])) {
             $index = new Index();
             if (strlen($index_name) > 0) {
                 $index->setName($index_name);
-                self::$_registry[$schema][$table][$index->getName()] = $index;
+                Index::$_registry[$schema][$table][$index->getName()] = $index;
             }
-
             return $index;
         }
 
-        return self::$_registry[$schema][$table][$index_name];
+        return Index::$_registry[$schema][$table][$index_name];
     }
 
     /**
@@ -141,10 +151,10 @@ class Index
      */
     public static function getFromTable($table, $schema)
     {
-        self::_loadIndexes($table, $schema);
+        Index::_loadIndexes($table, $schema);
 
-        if (isset(self::$_registry[$schema][$table])) {
-            return self::$_registry[$schema][$table];
+        if (isset(Index::$_registry[$schema][$table])) {
+            return Index::$_registry[$schema][$table];
         }
 
         return [];
@@ -163,33 +173,32 @@ class Index
     {
         $indexes = [];
         foreach (self::getFromTable($table, $schema) as $index) {
-            if (($choices & self::PRIMARY)
+            if (($choices & Index::PRIMARY)
                 && $index->getChoice() == 'PRIMARY'
             ) {
                 $indexes[] = $index;
             }
-            if (($choices & self::UNIQUE)
+            if (($choices & Index::UNIQUE)
                 && $index->getChoice() == 'UNIQUE'
             ) {
                 $indexes[] = $index;
             }
-            if (($choices & self::INDEX)
+            if (($choices & Index::INDEX)
                 && $index->getChoice() == 'INDEX'
             ) {
                 $indexes[] = $index;
             }
-            if (($choices & self::SPATIAL)
+            if (($choices & Index::SPATIAL)
                 && $index->getChoice() == 'SPATIAL'
             ) {
                 $indexes[] = $index;
             }
-            if (($choices & self::FULLTEXT)
+            if (($choices & Index::FULLTEXT)
                 && $index->getChoice() == 'FULLTEXT'
             ) {
                 $indexes[] = $index;
             }
         }
-
         return $indexes;
     }
 
@@ -203,10 +212,10 @@ class Index
      */
     public static function getPrimary($table, $schema)
     {
-        self::_loadIndexes($table, $schema);
+        Index::_loadIndexes($table, $schema);
 
-        if (isset(self::$_registry[$schema][$table]['PRIMARY'])) {
-            return self::$_registry[$schema][$table]['PRIMARY'];
+        if (isset(Index::$_registry[$schema][$table]['PRIMARY'])) {
+            return Index::$_registry[$schema][$table]['PRIMARY'];
         }
 
         return false;
@@ -218,11 +227,11 @@ class Index
      * @param string $table  table
      * @param string $schema schema
      *
-     * @return bool whether loading was successful
+     * @return boolean whether loading was successful
      */
     private static function _loadIndexes($table, $schema)
     {
-        if (isset(self::$_registry[$schema][$table])) {
+        if (isset(Index::$_registry[$schema][$table])) {
             return true;
         }
 
@@ -230,11 +239,11 @@ class Index
         foreach ($_raw_indexes as $_each_index) {
             $_each_index['Schema'] = $schema;
             $keyName = $_each_index['Key_name'];
-            if (! isset(self::$_registry[$schema][$table][$keyName])) {
+            if (! isset(Index::$_registry[$schema][$table][$keyName])) {
                 $key = new Index($_each_index);
-                self::$_registry[$schema][$table][$keyName] = $key;
+                Index::$_registry[$schema][$table][$keyName] = $key;
             } else {
-                $key = self::$_registry[$schema][$table][$keyName];
+                $key = Index::$_registry[$schema][$table][$keyName];
             }
 
             $key->addColumn($_each_index);
@@ -275,7 +284,8 @@ class Index
             // $columns[names][]
             // $columns[sub_parts][]
             foreach ($columns['names'] as $key => $name) {
-                $sub_part = $columns['sub_parts'][$key] ?? '';
+                $sub_part = isset($columns['sub_parts'][$key])
+                    ? $columns['sub_parts'][$key] : '';
                 $_columns[] = [
                     'Column_name'   => $name,
                     'Sub_part'      => $sub_part,
@@ -299,7 +309,7 @@ class Index
      *
      * @param string $column the column
      *
-     * @return bool true if $column indexed in this index
+     * @return boolean  true if $column indexed in this index
      */
     public function hasColumn($column)
     {
@@ -344,15 +354,15 @@ class Index
         }
         if (isset($params['Index_choice'])) {
             $this->_choice = $params['Index_choice'];
-        } elseif ($this->_name == 'PRIMARY') {
+        } elseif ('PRIMARY' == $this->_name) {
             $this->_choice = 'PRIMARY';
-        } elseif ($this->_type == 'FULLTEXT') {
+        } elseif ('FULLTEXT' == $this->_type) {
             $this->_choice = 'FULLTEXT';
             $this->_type = '';
-        } elseif ($this->_type == 'SPATIAL') {
+        } elseif ('SPATIAL' == $this->_type) {
             $this->_choice = 'SPATIAL';
             $this->_type = '';
-        } elseif ($this->_non_unique == '0') {
+        } elseif ('0' == $this->_non_unique) {
             $this->_choice = 'UNIQUE';
         } else {
             $this->_choice = 'INDEX';
@@ -368,7 +378,7 @@ class Index
     /**
      * Returns the number of columns of the index
      *
-     * @return int the number of the columns
+     * @return integer the number of the columns
      */
     public function getColumnCount()
     {
@@ -452,6 +462,22 @@ class Index
     }
 
     /**
+     * Return a list of all index choices
+     *
+     * @return string[] index choices
+     */
+    public static function getIndexChoices()
+    {
+        return [
+            'PRIMARY',
+            'INDEX',
+            'UNIQUE',
+            'SPATIAL',
+            'FULLTEXT',
+        ];
+    }
+
+    /**
      * Returns a lit of all index types
      *
      * @return string[] index types
@@ -464,9 +490,56 @@ class Index
         ];
     }
 
-    public function hasPrimary(): bool
+    /**
+     * Returns HTML for the index choice selector
+     *
+     * @param boolean $edit_table whether this is table editing
+     *
+     * @return string HTML for the index choice selector
+     */
+    public function generateIndexChoiceSelector($edit_table)
     {
-        return (bool) self::getPrimary($this->_table, $this->_schema);
+        $html_options = '<select name="index[Index_choice]"'
+            . ' id="select_index_choice" '
+            . ($edit_table ? 'disabled="disabled"' : '') . '>';
+
+        foreach (Index::getIndexChoices() as $each_index_choice) {
+            if ($each_index_choice === 'PRIMARY'
+                && $this->_choice !== 'PRIMARY'
+                && Index::getPrimary($this->_table, $this->_schema)
+            ) {
+                // skip PRIMARY if there is already one in the table
+                continue;
+            }
+            $html_options .= '<option value="' . $each_index_choice . '"'
+                 . ($this->_choice == $each_index_choice
+                 ? ' selected="selected"'
+                 : '')
+                 . '>' . $each_index_choice . '</option>' . "\n";
+        }
+        $html_options .= '</select>';
+
+        return $html_options;
+    }
+
+    /**
+     * Returns HTML for the index type selector
+     *
+     * @return string HTML for the index type selector
+     */
+    public function generateIndexTypeSelector()
+    {
+        $types = ["" => "--"];
+        foreach (Index::getIndexTypes() as $type) {
+            $types[$type] = $type;
+        }
+
+        return Util::getDropdown(
+            "index[Index_type]",
+            $types,
+            $this->_type,
+            "select_index_type"
+        );
     }
 
     /**
@@ -487,7 +560,7 @@ class Index
      */
     public function isPacked()
     {
-        if ($this->_packed === null) {
+        if (null === $this->_packed) {
             return __('No');
         }
 
@@ -497,7 +570,7 @@ class Index
     /**
      * Returns integer 0 if the index cannot contain duplicates, 1 if it can
      *
-     * @return int 0 if the index cannot contain duplicates, 1 if it can
+     * @return integer 0 if the index cannot contain duplicates, 1 if it can
      */
     public function getNonUnique()
     {
@@ -507,7 +580,7 @@ class Index
     /**
      * Returns whether the index is a 'Unique' index
      *
-     * @param bool $as_text whether to output should be in text
+     * @param boolean $as_text whether to output should be in text
      *
      * @return mixed whether the index is a 'Unique' index
      */
@@ -561,6 +634,201 @@ class Index
     }
 
     /**
+     * Get HTML for display indexes
+     *
+     * @return string
+     */
+    public static function getHtmlForDisplayIndexes()
+    {
+        $html_output = '<div id="index_div" class="width100 ajax" >';
+        $html_output .= self::getHtmlForIndexes(
+            $GLOBALS['table'],
+            $GLOBALS['db']
+        );
+        $html_output .= '<fieldset class="tblFooters print_ignore" style="text-align: '
+            . 'left;"><form action="tbl_indexes.php" method="post">';
+        $html_output .= Url::getHiddenInputs(
+            $GLOBALS['db'],
+            $GLOBALS['table']
+        );
+        $html_output .= sprintf(
+            __('Create an index on &nbsp;%s&nbsp;columns'),
+            '<input type="number" name="added_fields" value="1" '
+            . 'min="1" required="required">'
+        );
+        $html_output .= '<input type="hidden" name="create_index" value="1">'
+            . '<input class="btn btn-primary add_index ajax"'
+            . ' type="submit" value="' . __('Go') . '">';
+
+        $html_output .= '</form>'
+            . '</fieldset>'
+            . '</div>';
+
+        return $html_output;
+    }
+
+    /**
+     * Show index data
+     *
+     * @param string  $table      The table name
+     * @param string  $schema     The schema name
+     * @param boolean $print_mode Whether the output is for the print mode
+     *
+     * @return string HTML for showing index
+     *
+     * @access  public
+     */
+    public static function getHtmlForIndexes($table, $schema, $print_mode = false)
+    {
+        $indexes = Index::getFromTable($table, $schema);
+
+        $no_indexes_class = count($indexes) > 0 ? ' hide' : '';
+        $no_indexes  = "<div class='no_indexes_defined$no_indexes_class'>";
+        $no_indexes .= Message::notice(__('No index defined!'))->getDisplay();
+        $no_indexes .= '</div>';
+
+        if (! $print_mode) {
+            $r  = '<fieldset class="index_info">';
+            $r .= '<legend id="index_header">' . __('Indexes');
+            $r .= Util::showMySQLDocu('optimizing-database-structure');
+
+            $r .= '</legend>';
+            $r .= $no_indexes;
+            if (count($indexes) < 1) {
+                $r .= '</fieldset>';
+                return $r;
+            }
+            $r .= Index::findDuplicates($table, $schema);
+        } else {
+            $r  = '<h3>' . __('Indexes') . '</h3>';
+            $r .= $no_indexes;
+            if (count($indexes) < 1) {
+                return $r;
+            }
+        }
+        $r .= '<div class="responsivetable jsresponsive">';
+        $r .= '<table id="table_index">';
+        $r .= '<thead>';
+        $r .= '<tr>';
+        if (! $print_mode) {
+            $r .= '<th colspan="2" class="print_ignore">' . __('Action') . '</th>';
+        }
+        $r .= '<th>' . __('Keyname') . '</th>';
+        $r .= '<th>' . __('Type') . '</th>';
+        $r .= '<th>' . __('Unique') . '</th>';
+        $r .= '<th>' . __('Packed') . '</th>';
+        $r .= '<th>' . __('Column') . '</th>';
+        $r .= '<th>' . __('Cardinality') . '</th>';
+        $r .= '<th>' . __('Collation') . '</th>';
+        $r .= '<th>' . __('Null') . '</th>';
+        $r .= '<th>' . __('Comment') . '</th>';
+        $r .= '</tr>';
+        $r .= '</thead>';
+
+        foreach ($indexes as $index) {
+            $row_span = ' rowspan="' . $index->getColumnCount() . '" ';
+            $r .= '<tbody class="row_span">';
+            $r .= '<tr class="noclick" >';
+
+            if (! $print_mode) {
+                $this_params = $GLOBALS['url_params'];
+                $this_params['index'] = $index->getName();
+                $r .= '<td class="edit_index print_ignore';
+                $r .= ' ajax';
+                $r .= '" ' . $row_span . '>'
+                   . '    <a class="';
+                $r .= 'ajax';
+                $r .= '" href="tbl_indexes.php" data-post="' . Url::getCommon($this_params, '')
+                   . '">' . Util::getIcon('b_edit', __('Edit')) . '</a>'
+                   . '</td>' . "\n";
+                $this_params = $GLOBALS['url_params'];
+                if ($index->getName() == 'PRIMARY') {
+                    $this_params['sql_query'] = 'ALTER TABLE '
+                        . Util::backquote($table)
+                        . ' DROP PRIMARY KEY;';
+                    $this_params['message_to_show']
+                        = __('The primary key has been dropped.');
+                    $js_msg = Sanitize::jsFormat($this_params['sql_query'], false);
+                } else {
+                    $this_params['sql_query'] = 'ALTER TABLE '
+                        . Util::backquote($table) . ' DROP INDEX '
+                        . Util::backquote($index->getName()) . ';';
+                    $this_params['message_to_show'] = sprintf(
+                        __('Index %s has been dropped.'),
+                        htmlspecialchars($index->getName())
+                    );
+                    $js_msg = Sanitize::jsFormat($this_params['sql_query'], false);
+                }
+
+                $r .= '<td ' . $row_span . ' class="print_ignore">';
+                $r .= '<input type="hidden" class="drop_primary_key_index_msg"'
+                    . ' value="' . $js_msg . '">';
+                $r .= Util::linkOrButton(
+                    'sql.php' . Url::getCommon($this_params),
+                    Util::getIcon('b_drop', __('Drop')),
+                    ['class' => 'drop_primary_key_index_anchor ajax']
+                );
+                $r .= '</td>' . "\n";
+            }
+
+            if (! $print_mode) {
+                $r .= '<th ' . $row_span . '>'
+                    . htmlspecialchars($index->getName())
+                    . '</th>';
+            } else {
+                $r .= '<td ' . $row_span . '>'
+                    . htmlspecialchars($index->getName())
+                    . '</td>';
+            }
+            $r .= '<td ' . $row_span . '>';
+            $type = $index->getType();
+            if (! empty($type)) {
+                $r .= htmlspecialchars($type);
+            } else {
+                $r .= htmlspecialchars($index->getChoice());
+            }
+            $r .= '</td>';
+            $r .= '<td ' . $row_span . '>' . $index->isUnique(true) . '</td>';
+            $r .= '<td ' . $row_span . '>' . $index->isPacked() . '</td>';
+
+            foreach ($index->getColumns() as $column) {
+                if ($column->getSeqInIndex() > 1) {
+                    $r .= '<tr class="noclick" >';
+                }
+                $r .= '<td>' . htmlspecialchars($column->getName());
+                if ($column->getSubPart()) {
+                    $r .= ' (' . htmlspecialchars($column->getSubPart()) . ')';
+                }
+                $r .= '</td>';
+                $r .= '<td>'
+                    . htmlspecialchars((string) $column->getCardinality())
+                    . '</td>';
+                $r .= '<td>'
+                    . htmlspecialchars((string) $column->getCollation())
+                    . '</td>';
+                $r .= '<td>'
+                    . htmlspecialchars($column->getNull(true))
+                    . '</td>';
+
+                if ($column->getSeqInIndex() == 1
+                ) {
+                    $r .= '<td ' . $row_span . '>'
+                        . htmlspecialchars($index->getComments()) . '</td>';
+                }
+                $r .= '</tr>';
+            } // end foreach $index['Sequences']
+            $r .= '</tbody>';
+        } // end while
+        $r .= '</table>';
+        $r .= '</div>';
+        if (! $print_mode) {
+            $r .= '</fieldset>';
+        }
+
+        return $r;
+    }
+
+    /**
      * Gets the properties in an array for comparison purposes
      *
      * @return array an array containing the properties of the index
@@ -587,12 +855,11 @@ class Index
      * @param string $schema schema name
      *
      * @return string  Output HTML
-     *
-     * @access public
+     * @access  public
      */
     public static function findDuplicates($table, $schema)
     {
-        $indexes = self::getFromTable($table, $schema);
+        $indexes = Index::getFromTable($table, $schema);
 
         $output  = '';
 
@@ -629,7 +896,6 @@ class Index
                 continue 2;
             }
         }
-
         return $output;
     }
 }

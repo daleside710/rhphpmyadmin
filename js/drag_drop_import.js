@@ -1,3 +1,4 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 
 /* This script handles PMA Drag Drop Import, loaded only when configuration is enabled.*/
 
@@ -15,15 +16,15 @@ var DragDropImport = {
      */
     liveUploadCount: 0,
     /**
-     * @var string array, allowed extensions
+     * @var  string array, allowed extensions
      */
     allowedExtensions: ['sql', 'xml', 'ldi', 'mediawiki', 'shp'],
     /**
-     * @var string array, allowed extensions for compressed files
+     * @var  string array, allowed extensions for compressed files
      */
     allowedCompressedExtensions: ['gz', 'bz2', 'zip'],
     /**
-     * @var obj array to store message returned by /import-status
+     * @var obj array to store message returned by import_status.php
      */
     importStatus: [],
     /**
@@ -71,6 +72,7 @@ var DragDropImport = {
      * @return void
      */
     sendFileToServer: function (formData, hash) {
+        var uploadURL = './import.php'; // Upload URL
         var jqXHR = $.ajax({
             xhr: function () {
                 var xhrobj = $.ajaxSettings.xhr();
@@ -88,7 +90,7 @@ var DragDropImport = {
                 }
                 return xhrobj;
             },
-            url: 'index.php?route=/import',
+            url: uploadURL,
             type: 'POST',
             contentType:false,
             processData: false,

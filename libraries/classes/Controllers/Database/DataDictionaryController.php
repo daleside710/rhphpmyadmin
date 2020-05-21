@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Holds the PhpMyAdmin\Controllers\Database\DataDictionaryController
+ *
+ * @package PhpMyAdmin\Controllers
  */
 declare(strict_types=1);
 
@@ -13,17 +16,26 @@ use PhpMyAdmin\Response;
 use PhpMyAdmin\Template;
 use PhpMyAdmin\Transformations;
 use PhpMyAdmin\Util;
-use function str_replace;
 
+/**
+ * Class DataDictionaryController
+ * @package PhpMyAdmin\Controllers\Database
+ */
 class DataDictionaryController extends AbstractController
 {
-    /** @var Relation */
+    /**
+     * @var Relation
+     */
     private $relation;
 
-    /** @var Transformations */
+    /**
+     * @var Transformations
+     */
     private $transformations;
 
     /**
+     * DataDictionaryController constructor.
+     *
      * @param Response          $response        Response instance
      * @param DatabaseInterface $dbi             DatabaseInterface instance
      * @param Template          $template        Template object
@@ -38,13 +50,11 @@ class DataDictionaryController extends AbstractController
         $this->transformations = $transformations;
     }
 
-    public function index(): void
+    /**
+     * @return string HTML
+     */
+    public function index(): string
     {
-        Util::checkParameters(['db'], true);
-
-        $header = $this->response->getHeader();
-        $header->enablePrintView();
-
         $cfgRelation = $this->relation->getRelationsParam();
 
         $comment = $this->relation->getDbComment($this->db);
@@ -118,17 +128,26 @@ class DataDictionaryController extends AbstractController
                 ];
             }
 
+            $indexesTable = '';
+            if (count(Index::getFromTable($tableName, $this->db)) > 0) {
+                $indexesTable = Index::getHtmlForIndexes(
+                    $tableName,
+                    $this->db,
+                    true
+                );
+            }
+
             $tables[$tableName] = [
                 'name' => $tableName,
                 'comment' => $showComment,
                 'has_relation' => $hasRelation,
                 'has_mime' => $cfgRelation['mimework'],
                 'columns' => $rows,
-                'indexes' => Index::getFromTable($tableName, $this->db),
+                'indexes_table' => $indexesTable,
             ];
         }
 
-        $this->render('database/data_dictionary/index', [
+        return $this->template->render('database/data_dictionary/index', [
             'database' => $this->db,
             'comment' => $comment,
             'tables' => $tables,

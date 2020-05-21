@@ -1,26 +1,21 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * phpMyAdmin theme manager
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin;
 
-use const E_USER_ERROR;
-use const E_USER_WARNING;
-use function array_key_exists;
-use function closedir;
-use function htmlspecialchars;
-use function is_dir;
-use function ksort;
-use function opendir;
-use function readdir;
-use function sprintf;
-use function trigger_error;
-use function trim;
+use PhpMyAdmin\Theme;
+use PhpMyAdmin\Url;
 
 /**
  * phpMyAdmin theme manager
+ *
+ * @package PhpMyAdmin
  */
 class ThemeManager
 {
@@ -39,22 +34,34 @@ class ThemeManager
      */
     private $_themes_path = './themes/';
 
-    /** @var array available themes */
+    /**
+     * @var array available themes
+     */
     public $themes = [];
 
-    /** @var string  cookie name */
+    /**
+     * @var string  cookie name
+     */
     public $cookie_name = 'pma_theme';
 
-    /** @var bool */
+    /**
+     * @var boolean
+     */
     public $per_server = false;
 
-    /** @var string name of active theme */
+    /**
+     * @var string name of active theme
+     */
     public $active_theme = '';
 
-    /** @var Theme Theme active theme */
+    /**
+     * @var Theme Theme active theme
+     */
     public $theme = null;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     public $theme_default;
 
     /**
@@ -62,6 +69,11 @@ class ThemeManager
      */
     public const FALLBACK_THEME = 'pmahomme';
 
+    /**
+     * Constructor for Theme Manager class
+     *
+     * @access public
+     */
     public function __construct()
     {
         $this->themes = [];
@@ -116,7 +128,6 @@ class ThemeManager
         if (empty(self::$_instance)) {
             self::$_instance = new ThemeManager();
         }
-
         return self::$_instance;
     }
 
@@ -125,9 +136,8 @@ class ThemeManager
      *
      * @param string $path path to themes folder
      *
-     * @return bool success
-     *
      * @access public
+     * @return boolean success
      */
     public function setThemesPath($path)
     {
@@ -136,18 +146,16 @@ class ThemeManager
         }
 
         $this->_themes_path = trim($path);
-
         return true;
     }
 
     /**
      * sets if there are different themes per server
      *
-     * @param bool $per_server Whether to enable per server flag
-     *
-     * @return void
+     * @param boolean $per_server Whether to enable per server flag
      *
      * @access public
+     * @return void
      */
     public function setThemePerServer($per_server)
     {
@@ -159,9 +167,8 @@ class ThemeManager
      *
      * @param string $theme theme name
      *
-     * @return bool true on success
-     *
      * @access public
+     * @return bool true on success
      */
     public function setActiveTheme($theme = null)
     {
@@ -173,7 +180,6 @@ class ThemeManager
                 ),
                 E_USER_ERROR
             );
-
             return false;
         }
 
@@ -190,7 +196,6 @@ class ThemeManager
      * Returns name for storing theme
      *
      * @return string cookie name
-     *
      * @access public
      */
     public function getThemeCookieName()
@@ -207,11 +212,11 @@ class ThemeManager
      * returns name of theme stored in the cookie
      *
      * @return string|bool theme name from cookie or false
-     *
      * @access public
      */
     public function getThemeCookie()
     {
+        /** @var Config $PMA_Config */
         global $PMA_Config;
 
         $name = $this->getThemeCookieName();
@@ -226,7 +231,6 @@ class ThemeManager
      * save theme in cookie
      *
      * @return bool true
-     *
      * @access public
      */
     public function setThemeCookie()
@@ -239,7 +243,6 @@ class ThemeManager
         // force a change of a dummy session variable to avoid problems
         // with the caching of phpmyadmin.css.php
         $GLOBALS['PMA_Config']->set('theme-update', $this->theme->id);
-
         return true;
     }
 
@@ -248,8 +251,7 @@ class ThemeManager
      *
      * @param string $folder Folder name to test
      *
-     * @return bool
-     *
+     * @return boolean
      * @access private
      */
     private function _checkThemeFolder($folder)
@@ -262,7 +264,6 @@ class ThemeManager
                 ),
                 E_USER_ERROR
             );
-
             return false;
         }
 
@@ -273,26 +274,23 @@ class ThemeManager
      * read all themes
      *
      * @return bool true
-     *
      * @access public
      */
     public function loadThemes()
     {
         $this->themes = [];
-        $handleThemes = opendir($this->_themes_path);
 
-        if ($handleThemes === false) {
+        if (false === ($handleThemes = opendir($this->_themes_path))) {
             trigger_error(
                 'phpMyAdmin-ERROR: cannot open themes folder: '
                 . $this->_themes_path,
                 E_USER_WARNING
             );
-
             return false;
         }
 
         // check for themes directory
-        while (($PMA_Theme = readdir($handleThemes)) !== false) {
+        while (false !== ($PMA_Theme = readdir($handleThemes))) {
             // Skip non dirs, . and ..
             if ($PMA_Theme == '.'
                 || $PMA_Theme == '..'
@@ -314,7 +312,6 @@ class ThemeManager
         closedir($handleThemes);
 
         ksort($this->themes);
-
         return true;
     }
 
@@ -324,7 +321,6 @@ class ThemeManager
      * @param string $theme name fo theme to check for
      *
      * @return bool
-     *
      * @access public
      */
     public function checkTheme($theme)
@@ -335,10 +331,9 @@ class ThemeManager
     /**
      * returns HTML selectbox, with or without form enclosed
      *
-     * @param bool $form whether enclosed by from tags or not
+     * @param boolean $form whether enclosed by from tags or not
      *
      * @return string
-     *
      * @access public
      */
     public function getHtmlSelectBox($form = true)
@@ -347,12 +342,13 @@ class ThemeManager
 
         if ($form) {
             $select_box .= '<form name="setTheme" method="post"';
-            $select_box .= ' action="index.php?route=/set-theme" class="disableAjax">';
+            $select_box .= ' action="index.php" class="disableAjax">';
             $select_box .= Url::getHiddenInputs();
         }
 
+        $theme_preview_path = './themes.php';
         $theme_preview_href = '<a href="'
-            . Url::getFromRoute('/themes') . '" target="themes" class="themeselect">';
+            . $theme_preview_path . '" target="themes" class="themeselect">';
         $select_box .=  $theme_preview_href . __('Theme:') . '</a>' . "\n";
 
         $select_box .=  '<select name="set_theme" lang="en" dir="ltr"'
@@ -378,7 +374,6 @@ class ThemeManager
      * Renders the previews for all themes
      *
      * @return string
-     *
      * @access public
      */
     public function getPrintPreviews()
@@ -387,7 +382,6 @@ class ThemeManager
         foreach ($this->themes as $each_theme) {
             $retval .= $each_theme->getPrintPreview();
         } // end 'open themes'
-
         return $retval;
     }
 
@@ -395,7 +389,6 @@ class ThemeManager
      * Theme initialization
      *
      * @return void
-     *
      * @access public
      */
     public static function initializeTheme()
@@ -410,17 +403,13 @@ class ThemeManager
         $GLOBALS['PMA_Theme'] = $tmanager->theme;
 
         // BC
-
         /**
          * the theme path
-         *
          * @global string $GLOBALS['pmaThemePath']
          */
         $GLOBALS['pmaThemePath']    = $GLOBALS['PMA_Theme']->getPath();
-
         /**
          * the theme image path
-         *
          * @global string $GLOBALS['pmaThemeImage']
          */
         $GLOBALS['pmaThemeImage']   = $GLOBALS['PMA_Theme']->getImgPath();

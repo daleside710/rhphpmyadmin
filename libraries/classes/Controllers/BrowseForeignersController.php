@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Holds the PhpMyAdmin\Controllers\BrowseForeignersController
+ *
+ * @package PhpMyAdmin\Controllers
  */
 declare(strict_types=1);
 
@@ -14,16 +17,24 @@ use PhpMyAdmin\Template;
 
 /**
  * Display selection for relational field values
+ *
+ * @package PhpMyAdmin\Controllers
  */
 class BrowseForeignersController extends AbstractController
 {
-    /** @var BrowseForeigners */
+    /**
+     * @var BrowseForeigners
+     */
     private $browseForeigners;
 
-    /** @var Relation */
+    /**
+     * @var Relation
+     */
     private $relation;
 
     /**
+     * BrowseForeignersController constructor.
+     *
      * @param Response          $response         Response instance
      * @param DatabaseInterface $dbi              DatabaseInterface instance
      * @param Template          $template         Template object
@@ -37,27 +48,12 @@ class BrowseForeignersController extends AbstractController
         $this->relation = $relation;
     }
 
-    public function index(): void
+    /**
+     * @param array $params Request parameters
+     * @return string HTML
+     */
+    public function index(array $params): string
     {
-        $params = [
-            'db' => $_POST['db'] ?? null,
-            'table' => $_POST['table'] ?? null,
-            'field' => $_POST['field'] ?? null,
-            'fieldkey' => $_POST['fieldkey'] ?? null,
-            'data' => $_POST['data'] ?? null,
-            'foreign_showAll' => $_POST['foreign_showAll'] ?? null,
-            'foreign_filter' => $_POST['foreign_filter'] ?? null,
-        ];
-
-        if (! isset($params['db'], $params['table'], $params['field'])) {
-            return;
-        }
-
-        $this->response->getFooter()->setMinimal();
-        $header = $this->response->getHeader();
-        $header->disableMenuAndConsole();
-        $header->setBodyId('body_browse_foreigners');
-
         $foreigners = $this->relation->getForeigners(
             $params['db'],
             $params['table']
@@ -74,13 +70,13 @@ class BrowseForeignersController extends AbstractController
             true
         );
 
-        $this->response->addHTML($this->browseForeigners->getHtmlForRelationalFieldSelection(
+        return $this->browseForeigners->getHtmlForRelationalFieldSelection(
             $params['db'],
             $params['table'],
             $params['field'],
             $foreignData,
             $params['fieldkey'] ?? '',
             $params['data'] ?? ''
-        ));
+        );
     }
 }

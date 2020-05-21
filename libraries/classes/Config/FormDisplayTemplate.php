@@ -1,42 +1,45 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Form templates
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Config;
 
 use PhpMyAdmin\Config;
-use PhpMyAdmin\Html\Generator;
 use PhpMyAdmin\Sanitize;
 use PhpMyAdmin\Template;
-use function array_flip;
-use function array_merge;
-use function array_shift;
-use function defined;
-use function htmlspecialchars;
-use function htmlspecialchars_decode;
-use function implode;
-use function is_array;
-use function is_bool;
-use function mb_strtolower;
-use function sprintf;
+use PhpMyAdmin\Url;
+use PhpMyAdmin\Util;
 
 /**
  * PhpMyAdmin\Config\FormDisplayTemplate class
+ *
+ * @package PhpMyAdmin
  */
 class FormDisplayTemplate
 {
-    /** @var int */
+    /**
+     * @var int
+     */
     public $group;
 
-    /** @var Config */
+    /**
+     * @var Config
+     */
     protected $config;
 
-    /** @var Template */
+    /**
+     * @var Template
+     */
     public $template;
 
     /**
+     * FormDisplayTemplate constructor.
+     *
      * @param Config $config Config instance
      */
     public function __construct(Config $config)
@@ -51,6 +54,8 @@ class FormDisplayTemplate
      * @param string     $action       default: $_SERVER['REQUEST_URI']
      * @param string     $method       'post' or 'get'
      * @param array|null $hiddenFields array of form hidden fields (key: field name)
+     *
+     * @return string
      */
     public function displayFormTop(
         $action = null,
@@ -62,24 +67,22 @@ class FormDisplayTemplate
         if ($action === null) {
             $action = $_SERVER['REQUEST_URI'];
         }
-        if ($method !== 'post') {
+        if ($method != 'post') {
             $method = 'get';
         }
-
-        /**
-         * We do validation on page refresh when browser remembers field values,
-         * add a field with known value which will be used for checks.
-         */
+        $htmlOutput = '<form method="' . $method . '" action="'
+            . htmlspecialchars($action) . '" class="config-form disableAjax">';
+        $htmlOutput .= '<input type="hidden" name="tab_hash" value="">';
+        // we do validation on page refresh when browser remembers field values,
+        // add a field with known value which will be used for checks
         if (! $hasCheckPageRefresh) {
             $hasCheckPageRefresh = true;
+            $htmlOutput .= '<input type="hidden" name="check_page_refresh" '
+                . ' id="check_page_refresh" value="">' . "\n";
         }
-
-        return $this->template->render('config/form_display/form_top', [
-            'method' => $method,
-            'action' => $action,
-            'has_check_page_refresh' => $hasCheckPageRefresh,
-            'hidden_fields' => (array) $hiddenFields,
-        ]);
+        $htmlOutput .= Url::getHiddenInputs('', '', 0, 'server') . "\n";
+        $htmlOutput .= Url::getHiddenFields((array) $hiddenFields, '', true);
+        return $htmlOutput;
     }
 
     /**
@@ -87,6 +90,8 @@ class FormDisplayTemplate
      * ({@link self::displayFieldsetTop}), with values being tab titles.
      *
      * @param array $tabs tab names
+     *
+     * @return string
      */
     public function displayTabsTop(array $tabs): string
     {
@@ -101,11 +106,11 @@ class FormDisplayTemplate
         }
 
         $htmlOutput = $this->template->render('list/unordered', [
-            'class' => 'tabs responsivetable row',
+            'class' => 'tabs responsivetable',
             'items' => $items,
         ]);
-        $htmlOutput .= '<div class="tabs_contents col">';
-
+        $htmlOutput .= '<br>';
+        $htmlOutput .= '<div class="tabs_contents">';
         return $htmlOutput;
     }
 
@@ -116,6 +121,8 @@ class FormDisplayTemplate
      * @param string     $description description shown on top of fieldset
      * @param array|null $errors      error messages to display
      * @param array      $attributes  optional extra attributes of fieldset
+     *
+     * @return string
      */
     public function displayFieldsetTop(
         $title = '',
@@ -160,6 +167,8 @@ class FormDisplayTemplate
      * @param string     $description    verbose description
      * @param bool       $valueIsDefault whether value is default
      * @param array|null $opts           see above description
+     *
+     * @return string
      */
     public function displayInput(
         $path,
@@ -213,14 +222,14 @@ class FormDisplayTemplate
                     $icons[$k] = sprintf(
                         '<img alt="%s" src="%s"%s>',
                         $v[1],
-                        '../themes/pmahomme/img/' . $v[0] . '.png',
+                        "../themes/pmahomme/img/{$v[0]}.png",
                         $title
                     );
                 }
             } else {
                 // In this case we just use getImage() because it's available
                 foreach ($iconInit as $k => $v) {
-                    $icons[$k] = Generator::getImage(
+                    $icons[$k] = Util::getImage(
                         $v[0],
                         $v[1]
                     );
@@ -269,7 +278,7 @@ class FormDisplayTemplate
             $htmlOutput .= __(
                 'This setting is disabled, it will not be applied to your configuration.'
             );
-            $htmlOutput .= '">' . __('Disabled') . '</span>';
+            $htmlOutput .= '">' . __('Disabled') . "</span>";
         }
 
         if (! empty($description)) {
@@ -281,11 +290,11 @@ class FormDisplayTemplate
 
         switch ($type) {
             case 'text':
-                $htmlOutput .= '<input type="text" class="w-75" ' . $nameId . $fieldClass
+                $htmlOutput .= '<input type="text" class="all85" ' . $nameId . $fieldClass
                 . ' value="' . htmlspecialchars($value) . '">';
                 break;
             case 'password':
-                $htmlOutput .= '<input type="password" class="w-75" ' . $nameId . $fieldClass
+                $htmlOutput .= '<input type="password" class="all85" ' . $nameId . $fieldClass
                 . ' value="' . htmlspecialchars($value) . '">';
                 break;
             case 'short_text':
@@ -307,7 +316,7 @@ class FormDisplayTemplate
                   . ($value ? ' checked="checked"' : '') . '></span>';
                 break;
             case 'select':
-                $htmlOutput .= '<select class="w-75" ' . $nameId . $fieldClass . '>';
+                $htmlOutput .= '<select class="all85" ' . $nameId . $fieldClass . '>';
                 $escape = ! (isset($opts['values_escaped']) && $opts['values_escaped']);
                 $valuesDisabled = isset($opts['values_disabled'])
                 ? array_flip($opts['values_disabled']) : [];
@@ -343,12 +352,8 @@ class FormDisplayTemplate
                 $htmlOutput .= '</select>';
                 break;
             case 'list':
-                $val = $value;
-                if (isset($val['wrapper_params'])) {
-                    unset($val['wrapper_params']);
-                }
                 $htmlOutput .= '<textarea cols="35" rows="5" ' . $nameId . $fieldClass
-                . '>' . htmlspecialchars(implode("\n", $val)) . '</textarea>';
+                . '>' . htmlspecialchars(implode("\n", $value)) . '</textarea>';
                 break;
         }
         if ($isSetupScript
@@ -361,7 +366,7 @@ class FormDisplayTemplate
         }
         if (isset($opts['setvalue']) && $opts['setvalue']) {
             $htmlOutput .= '<a class="set-value hide" href="#'
-                . htmlspecialchars($path . '=' . $opts['setvalue']) . '" title="'
+                . htmlspecialchars("$path={$opts['setvalue']}") . '" title="'
                 . sprintf(__('Set value: %s'), htmlspecialchars($opts['setvalue']))
                 . '">' . $icons['edit'] . '</a>';
         }
@@ -392,7 +397,6 @@ class FormDisplayTemplate
             $htmlOutput .= '<td>&nbsp;</td>';
         }
         $htmlOutput .= '</tr>';
-
         return $htmlOutput;
     }
 
@@ -400,6 +404,8 @@ class FormDisplayTemplate
      * Display group header
      *
      * @param string $headerText Text of header
+     *
+     * @return string
      */
     public function displayGroupHeader(string $headerText): string
     {
@@ -418,6 +424,8 @@ class FormDisplayTemplate
 
     /**
      * Display group footer
+     *
+     * @return void
      */
     public function displayGroupFooter(): void
     {
@@ -428,6 +436,8 @@ class FormDisplayTemplate
      * Displays bottom part of a fieldset
      *
      * @param bool $showButtons Whether show submit and reset button
+     *
+     * @return string
      */
     public function displayFieldsetBottom(bool $showButtons = true): string
     {
@@ -439,6 +449,8 @@ class FormDisplayTemplate
 
     /**
      * Closes form tabs
+     *
+     * @return string
      */
     public function displayTabsBottom(): string
     {
@@ -447,6 +459,8 @@ class FormDisplayTemplate
 
     /**
      * Displays bottom part of the form
+     *
+     * @return string
      */
     public function displayFormBottom(): string
     {
@@ -459,6 +473,8 @@ class FormDisplayTemplate
      * @param string       $fieldId    ID of field to validate
      * @param string|array $validators validators callback
      * @param array        $jsArray    will be updated with javascript code
+     *
+     * @return void
      */
     public function addJsValidate($fieldId, $validators, array &$jsArray): void
     {
@@ -470,7 +486,7 @@ class FormDisplayTemplate
                 $vArgs[] = Sanitize::escapeJsString($arg);
             }
             $vArgs = $vArgs ? ", ['" . implode("', '", $vArgs) . "']" : '';
-            $jsArray[] = "registerFieldValidator('" . $fieldId . "', '" . $vName . "', true" . $vArgs . ')';
+            $jsArray[] = "registerFieldValidator('$fieldId', '$vName', true$vArgs)";
         }
     }
 
@@ -478,6 +494,8 @@ class FormDisplayTemplate
      * Displays JavaScript code
      *
      * @param array $jsArray lines of javascript code
+     *
+     * @return string
      */
     public function displayJavascript(array $jsArray): string
     {

@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * hold PhpMyAdmin\Twig\CoreExtension class
+ *
+ * @package PhpMyAdmin\Twig
  */
 declare(strict_types=1);
 
@@ -9,6 +12,11 @@ namespace PhpMyAdmin\Twig;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 
+/**
+ * Class CoreExtension
+ *
+ * @package PhpMyAdmin\Twig
+ */
 class CoreExtension extends AbstractExtension
 {
     /**

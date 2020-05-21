@@ -1,63 +1,45 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * A simple rules engine, that parses and executes the rules in advisory_rules.txt.
  * Adjusted to phpMyAdmin.
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin;
 
 use Exception;
-use PhpMyAdmin\Server\SysInfo\SysInfo;
+use PhpMyAdmin\Core;
+use PhpMyAdmin\DatabaseInterface;
+use PhpMyAdmin\SysInfo;
+use PhpMyAdmin\Url;
+use PhpMyAdmin\Util;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Throwable;
-use const FILE_IGNORE_NEW_LINES;
-use function array_merge;
 use function array_merge_recursive;
-use function count;
-use function file;
-use function htmlspecialchars;
-use function implode;
-use function mb_substr;
-use function pow;
-use function preg_match;
-use function preg_replace;
-use function preg_replace_callback;
-use function preg_split;
-use function round;
-use function rtrim;
-use function sprintf;
-use function strpos;
-use function substr;
-use function vsprintf;
 
 /**
  * Advisor class
+ *
+ * @package PhpMyAdmin
  */
 class Advisor
 {
     public const GENERIC_RULES_FILE = 'libraries/advisory_rules_generic.txt';
     public const BEFORE_MYSQL80003_RULES_FILE = 'libraries/advisory_rules_mysql_before80003.txt';
 
-    /** @var DatabaseInterface */
     protected $dbi;
-
-    /** @var array */
     protected $variables;
-
-    /** @var array */
     protected $globals;
-
-    /** @var array */
     protected $parseResult;
-
-    /** @var array */
     protected $runResult;
-
-    /** @var ExpressionLanguage */
     protected $expression;
 
     /**
+     * Constructor
+     *
      * @param DatabaseInterface  $dbi        DatabaseInterface object
      * @param ExpressionLanguage $expression ExpressionLanguage object
      */
@@ -73,10 +55,6 @@ class Advisor
             'round',
             function () {
             },
-            /**
-             * @param array $arguments
-             * @param float $num
-             */
             function ($arguments, $num) {
                 return round($num);
             }
@@ -85,12 +63,6 @@ class Advisor
             'substr',
             function () {
             },
-            /**
-             * @param array $arguments
-             * @param string $string
-             * @param int $start
-             * @param int $length
-             */
             function ($arguments, $string, $start, $length) {
                 return substr($string, $start, $length);
             }
@@ -99,11 +71,6 @@ class Advisor
             'preg_match',
             function () {
             },
-            /**
-             * @param array $arguments
-             * @param string $pattern
-             * @param string $subject
-             */
             function ($arguments, $pattern, $subject) {
                 return preg_match($pattern, $subject);
             }
@@ -112,11 +79,6 @@ class Advisor
             'ADVISOR_bytime',
             function () {
             },
-            /**
-             * @param array $arguments
-             * @param float $num
-             * @param int $precision
-             */
             function ($arguments, $num, $precision) {
                 return self::byTime($num, $precision);
             }
@@ -125,10 +87,6 @@ class Advisor
             'ADVISOR_timespanFormat',
             function () {
             },
-            /**
-             * @param array $arguments
-             * @param string $seconds
-             */
             function ($arguments, $seconds) {
                 return self::timespanFormat((int) $seconds);
             }
@@ -137,12 +95,6 @@ class Advisor
             'ADVISOR_formatByteDown',
             function () {
             },
-            /**
-             * @param array $arguments
-             * @param int $value
-             * @param int $limes
-             * @param int $comma
-             */
             function ($arguments, $value, $limes = 6, $comma = 0) {
                 return self::formatByteDown($value, $limes, $comma);
             }
@@ -151,10 +103,6 @@ class Advisor
             'fired',
             function () {
             },
-            /**
-             * @param array $arguments
-             * @param int $value
-             */
             function ($arguments, $value) {
                 if (! isset($this->runResult['fired'])) {
                     return 0;
@@ -179,9 +127,9 @@ class Advisor
     /**
      * Get variables
      *
-     * @return array
+     * @return mixed
      */
-    public function getVariables(): array
+    public function getVariables()
     {
         return $this->variables;
     }
@@ -218,9 +166,9 @@ class Advisor
     /**
      * Get parseResult
      *
-     * @return array
+     * @return mixed
      */
-    public function getParseResult(): array
+    public function getParseResult()
     {
         return $this->parseResult;
     }
@@ -242,9 +190,9 @@ class Advisor
     /**
      * Get runResult
      *
-     * @return array
+     * @return mixed
      */
-    public function getRunResult(): array
+    public function getRunResult()
     {
         return $this->runResult;
     }
@@ -283,14 +231,15 @@ class Advisor
         // Add total memory to variables as well
         $sysinfo = SysInfo::get();
         $memory  = $sysinfo->memory();
-        $this->variables['system_memory'] = $memory['MemTotal'] ?? 0;
+        $this->variables['system_memory']
+            = isset($memory['MemTotal']) ? $memory['MemTotal'] : 0;
 
         $ruleFiles = $this->defineRulesFiles();
 
         // Step 2: Read and parse the list of rules
         $parsedResults = [];
         foreach ($ruleFiles as $ruleFile) {
-            $parsedResults[] = static::parseRulesFile($ruleFile);
+            $parsedResults[] = $this->parseRulesFile($ruleFile);
         }
         $this->setParseResult(array_merge_recursive(...$parsedResults));
 
@@ -309,6 +258,8 @@ class Advisor
      *
      * @param string    $description description of an error.
      * @param Throwable $exception   exception raised
+     *
+     * @return void
      */
     public function storeError(string $description, Throwable $exception): void
     {
@@ -322,6 +273,8 @@ class Advisor
 
     /**
      * Executes advisor rules
+     *
+     * @return boolean
      */
     public function runRules(): bool
     {
@@ -341,7 +294,7 @@ class Advisor
             if (isset($rule['precondition'])) {
                 try {
                      $precond = $this->ruleExprEvaluate($rule['precondition']);
-                } catch (Throwable $e) {
+                } catch (Exception $e) {
                     $this->storeError(
                         sprintf(
                             __('Failed evaluating precondition for rule \'%s\'.'),
@@ -358,7 +311,7 @@ class Advisor
             } else {
                 try {
                     $value = $this->ruleExprEvaluate($rule['formula']);
-                } catch (Throwable $e) {
+                } catch (Exception $e) {
                     $this->storeError(
                         sprintf(
                             __('Failed calculating value for rule \'%s\'.'),
@@ -377,7 +330,7 @@ class Advisor
                     } else {
                         $this->addRule('notfired', $rule);
                     }
-                } catch (Throwable $e) {
+                } catch (Exception $e) {
                     $this->storeError(
                         sprintf(
                             __('Failed running test for rule \'%s\'.'),
@@ -396,6 +349,8 @@ class Advisor
      * Escapes percent string to be used in format string.
      *
      * @param string $str string to escape
+     *
+     * @return string
      */
     public static function escapePercent(string $str): string
     {
@@ -408,6 +363,7 @@ class Advisor
      * @param string $str   the string
      * @param string $param the parameters
      *
+     * @return string
      * @throws Exception
      */
     public function translate(string $str, ?string $param = null): string
@@ -418,7 +374,6 @@ class Advisor
         } else {
             $params = [];
         }
-
         return vsprintf($string, $params);
     }
 
@@ -432,13 +387,12 @@ class Advisor
     public static function splitJustification(array $rule): array
     {
         $jst = preg_split('/\s*\|\s*/', $rule['justification'], 2);
-        if ($jst !== false && count($jst) > 1) {
+        if (count($jst) > 1) {
             return [
                 $jst[0],
                 $jst[1],
             ];
         }
-
         return [$rule['justification']];
     }
 
@@ -448,6 +402,7 @@ class Advisor
      * @param string $type type of rule
      * @param array  $rule rule itself
      *
+     * @return void
      * @throws Exception
      */
     public function addRule(string $type, array $rule): void
@@ -460,7 +415,7 @@ class Advisor
                     try {
                         /* Translate */
                         $str = $this->translate($jst[0], $jst[1]);
-                    } catch (Throwable $e) {
+                    } catch (Exception $e) {
                         $this->storeError(
                             sprintf(
                                 __('Failed formatting string for rule \'%s\'.'),
@@ -468,7 +423,6 @@ class Advisor
                             ),
                             $e
                         );
-
                         return;
                     }
 
@@ -481,7 +435,7 @@ class Advisor
                 $rule['issue'] = $this->translate($rule['issue']);
 
                 // Replaces {server_variable} with 'server_variable'
-                // linking to /server/variables
+                // linking to server_variables.php
                 $rule['recommendation'] = preg_replace_callback(
                     '/\{([a-z_0-9]+)\}/Ui',
                     [
@@ -513,13 +467,12 @@ class Advisor
      */
     protected function defineRulesFiles(): array
     {
-        $isMariaDB = strpos($this->getVariables()['version'], 'MariaDB') !== false;
+        $isMariaDB = false !== strpos($this->getVariables()['version'], 'MariaDB');
         $ruleFiles = [self::GENERIC_RULES_FILE];
         // If MariaDB (= not MySQL) OR MYSQL < 8.0.3, add another rules file.
         if ($isMariaDB || $this->globals['PMA_MYSQL_INT_VERSION'] < 80003) {
             $ruleFiles[] = self::BEFORE_MYSQL80003_RULES_FILE;
         }
-
         return $ruleFiles;
     }
 
@@ -544,7 +497,7 @@ class Advisor
      */
     private function replaceVariable(array $matches): string
     {
-        return '<a href="' . Url::getFromRoute('/server/variables', ['filter' => $matches[1]])
+        return '<a href="server_variables.php' . Url::getCommon(['filter' => $matches[1]])
                 . '">' . htmlspecialchars($matches[1]) . '</a>';
     }
 
@@ -562,10 +515,12 @@ class Advisor
     {
         // Actually evaluate the code
         // This can throw exception
-        return $this->expression->evaluate(
+        $value = $this->expression->evaluate(
             $expr,
             array_merge($this->variables, $this->globals)
         );
+
+        return $value;
     }
 
     /**
@@ -589,7 +544,6 @@ class Advisor
                 __('Error in reading file: The file \'%s\' does not exist or is not readable!'),
                 $filename
             );
-
             return [
                 'rules' => $rules,
                 'lines' => $lines,
@@ -612,7 +566,7 @@ class Advisor
 
         for ($i = 0; $i < $numLines; $i++) {
             $line = $file[$i];
-            if ($line == '' || $line[0] == '#') {
+            if ($line == "" || $line[0] == '#') {
                 continue;
             }
 
@@ -692,8 +646,8 @@ class Advisor
     /**
      * Formats interval like 10 per hour
      *
-     * @param float $num       number to format
-     * @param int   $precision required precision
+     * @param float   $num       number to format
+     * @param integer $precision required precision
      *
      * @return string formatted string
      */
@@ -705,10 +659,10 @@ class Advisor
             $num *= 60;
             $per = __('per minute');
         } elseif ($num * 60 * 60 >= 1) { // per hour
-            $num *= 60 * 60;
+            $num = $num * 60 * 60;
             $per = __('per hour');
         } else {
-            $num *= 24 * 60 * 60;
+            $num = $num * 60 * 60 * 24;
             $per = __('per day');
         }
 
@@ -718,7 +672,7 @@ class Advisor
             $num = '<' . pow(10, -$precision);
         }
 
-        return $num . ' ' . $per;
+        return "$num $per";
     }
 
     /**
@@ -740,9 +694,9 @@ class Advisor
      *
      * This function is used when evaluating advisory_rules.txt
      *
-     * @param double|int $value the value to format
-     * @param int        $limes the sensitiveness
-     * @param int        $comma the number of decimals to retain
+     * @param double|string $value the value to format
+     * @param int           $limes the sensitiveness
+     * @param int           $comma the number of decimals to retain
      *
      * @return string the formatted value with unit
      */

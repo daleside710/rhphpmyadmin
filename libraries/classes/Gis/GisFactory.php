@@ -1,15 +1,18 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Contains the factory class that handles the creation of geometric objects
+ *
+ * @package PhpMyAdmin-GIS
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Gis;
 
-use function strtoupper;
-
 /**
  * Factory class that handles the creation of geometric objects.
+ *
+ * @package PhpMyAdmin-GIS
  */
 class GisFactory
 {
@@ -18,7 +21,7 @@ class GisFactory
      *
      * @param string $type type of the geometric object
      *
-     * @return GisGeometry|false the singleton instance of geometric class of the given type
+     * @return GisMultiPolygon|GisPolygon|GisMultiPoint|GisPoint|GisMultiLineString|GisLineString|GisGeometryCollection|false the singleton instance of geometric class of the given type
      *
      * @access public
      * @static

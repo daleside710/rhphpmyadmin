@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Holds the PhpMyAdmin\UserPreferences class
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
@@ -8,28 +11,33 @@ namespace PhpMyAdmin;
 
 use PhpMyAdmin\Config\ConfigFile;
 use PhpMyAdmin\Config\Forms\User\UserFormList;
-use function array_flip;
-use function array_merge;
-use function basename;
-use function http_build_query;
-use function is_array;
-use function json_decode;
-use function json_encode;
-use function strpos;
-use function time;
-use function urlencode;
+use PhpMyAdmin\Core;
+use PhpMyAdmin\Message;
+use PhpMyAdmin\Relation;
+use PhpMyAdmin\Template;
+use PhpMyAdmin\Url;
+use PhpMyAdmin\Util;
 
 /**
  * Functions for displaying user preferences pages
+ *
+ * @package PhpMyAdmin
  */
 class UserPreferences
 {
-    /** @var Relation */
+    /**
+     * @var Relation
+     */
     private $relation;
 
-    /** @var Template */
+    /**
+     * @var Template
+     */
     public $template;
 
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         $this->relation = new Relation($GLOBALS['dbi']);
@@ -78,7 +86,6 @@ class UserPreferences
                     'ts' => time(),
                 ];
             }
-
             return [
                 'config_data' => $_SESSION['userconfig']['db'],
                 'mtime' => $_SESSION['userconfig']['ts'],
@@ -112,7 +119,9 @@ class UserPreferences
     public function save(array $config_array)
     {
         $cfgRelation = $this->relation->getRelationsParam();
-        $server = $GLOBALS['server'] ?? $GLOBALS['cfg']['ServerDefault'];
+        $server = isset($GLOBALS['server'])
+            ? $GLOBALS['server']
+            : $GLOBALS['cfg']['ServerDefault'];
         $cache_key = 'server_' . $server;
         if (! $cfgRelation['userconfigwork']) {
             // no pmadb table, use session storage
@@ -123,7 +132,6 @@ class UserPreferences
             if (isset($_SESSION['cache'][$cache_key]['userprefs'])) {
                 unset($_SESSION['cache'][$cache_key]['userprefs']);
             }
-
             return true;
         }
 
@@ -168,10 +176,8 @@ class UserPreferences
                 ),
                 '<br><br>'
             );
-
             return $message;
         }
-
         return true;
     }
 
@@ -200,7 +206,6 @@ class UserPreferences
             }
             Core::arrayWrite($path, $cfg, $value);
         }
-
         return $cfg;
     }
 
@@ -227,7 +232,6 @@ class UserPreferences
         } else {
             $prefs['config_data'][$path] = $value;
         }
-
         return $this->save($prefs['config_data']);
     }
 
@@ -254,7 +258,7 @@ class UserPreferences
             $hash = '#' . urlencode($hash);
         }
         Core::sendHeaderLocation('./' . $file_name
-            . Url::getCommonRaw($url_params, strpos($file_name, '?') === false ? '?' : '&') . $hash);
+            . Url::getCommonRaw($url_params) . $hash);
     }
 
     /**
@@ -269,7 +273,6 @@ class UserPreferences
             && $_REQUEST['prefs_autoload'] == 'hide'
         ) {
             $_SESSION['userprefs_autoload'] = true;
-
             return '';
         }
 

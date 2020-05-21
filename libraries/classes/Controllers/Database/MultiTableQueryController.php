@@ -1,39 +1,42 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Holds the PhpMyAdmin\Controllers\Database\MultiTableQueryController
+ *
+ * @package PhpMyAdmin\Controllers\Database
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Controllers\Database;
 
 use PhpMyAdmin\Database\MultiTableQuery;
+use PhpMyAdmin\Template;
 
 /**
  * Handles database multi-table querying
+ * @package PhpMyAdmin\Controllers\Database
  */
 class MultiTableQueryController extends AbstractController
 {
-    public function index(): void
+    /**
+     * @param Template $template Templace instance
+     *
+     * @return string HTML
+     */
+    public function index(Template $template): string
     {
-        $header = $this->response->getHeader();
-        $scripts = $header->getScripts();
-        $scripts->addFile('vendor/jquery/jquery.md5.js');
-        $scripts->addFile('database/multi_table_query.js');
-        $scripts->addFile('database/query_generator.js');
+        $queryInstance = new MultiTableQuery($this->dbi, $template, $this->db);
 
-        $queryInstance = new MultiTableQuery($this->dbi, $this->template, $this->db);
-
-        $this->response->addHTML($queryInstance->getFormHtml());
+        return $queryInstance->getFormHtml();
     }
 
-    public function displayResults(): void
+    /**
+     * @param array $params Request parameters
+     * @return void
+     */
+    public function displayResults(array $params): void
     {
         global $pmaThemeImage;
-
-        $params = [
-            'sql_query' => $_POST['sql_query'],
-            'db' => $_POST['db'] ?? $_GET['db'] ?? null,
-        ];
 
         MultiTableQuery::displayResults(
             $params['sql_query'],
@@ -42,16 +45,17 @@ class MultiTableQueryController extends AbstractController
         );
     }
 
-    public function table(): void
+    /**
+     * @param array $params Request parameters
+     * @return array JSON
+     */
+    public function table(array $params): array
     {
-        $params = [
-            'tables' => $_GET['tables'],
-            'db' => $_GET['db'] ?? null,
-        ];
         $constrains = $this->dbi->getForeignKeyConstrains(
             $params['db'],
             $params['tables']
         );
-        $this->response->addJSON(['foreignKeyConstrains' => $constrains]);
+
+        return ['foreignKeyConstrains' => $constrains];
     }
 }

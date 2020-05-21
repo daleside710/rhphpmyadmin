@@ -1,8 +1,11 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * XML import plugin for phpMyAdmin
  *
  * @todo       Improve efficiency
+ * @package    PhpMyAdmin-Import
+ * @subpackage XML
  */
 declare(strict_types=1);
 
@@ -14,20 +17,18 @@ use PhpMyAdmin\Plugins\ImportPlugin;
 use PhpMyAdmin\Properties\Plugins\ImportPluginProperties;
 use PhpMyAdmin\Util;
 use SimpleXMLElement;
-use const LIBXML_COMPACT;
-use function count;
-use function in_array;
-use function libxml_disable_entity_loader;
-use function simplexml_load_string;
-use function str_replace;
-use function strcmp;
-use function strlen;
 
 /**
  * Handles the import for the XML format
+ *
+ * @package    PhpMyAdmin-Import
+ * @subpackage XML
  */
 class ImportXml extends ImportPlugin
 {
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         parent::__construct();
@@ -65,7 +66,7 @@ class ImportXml extends ImportPlugin
 
         $i = 0;
         $len = 0;
-        $buffer = '';
+        $buffer = "";
 
         /**
          * Read in the file via Import::getNextChunk so that
@@ -98,7 +99,7 @@ class ImportXml extends ImportPlugin
          * result in increased performance without the need to
          * alter the code in any way. It's basically a freebee.
          */
-        $xml = @simplexml_load_string($buffer, 'SimpleXMLElement', LIBXML_COMPACT);
+        $xml = @simplexml_load_string($buffer, "SimpleXMLElement", LIBXML_COMPACT);
 
         unset($buffer);
 
@@ -147,7 +148,7 @@ class ImportXml extends ImportPlugin
         /**
          * Get the database name, collation and charset
          */
-        $db_attr = $xml->children($namespaces['pma'] ?? null)
+        $db_attr = $xml->children(isset($namespaces['pma']) ? $namespaces['pma'] : null)
             ->{'structure_schemas'}->{'database'};
 
         if ($db_attr instanceof SimpleXMLElement) {
@@ -208,16 +209,16 @@ class ImportXml extends ImportPlugin
                      *          into another database.
                      */
                     $attrs = $val2->attributes();
-                    $create[] = 'USE '
+                    $create[] = "USE "
                         . Util::backquote(
-                            $attrs['name']
+                            $attrs["name"]
                         );
 
                     foreach ($val2 as $val3) {
                         /**
                          * Remove the extra cosmetic spacing
                          */
-                        $val3 = str_replace('                ', '', (string) $val3);
+                        $val3 = str_replace("                ", "", (string) $val3);
                         $create[] = $val3;
                     }
                 }
@@ -237,7 +238,7 @@ class ImportXml extends ImportPlugin
         /**
          * Only attempt to analyze/collect data if there is data present
          */
-        if ($xml && $xml->children()->count()) {
+        if ($xml && @count($xml->children())) {
             $data_present = true;
 
             /**
@@ -261,7 +262,7 @@ class ImportXml extends ImportPlugin
 
                 foreach ($v1 as $v2) {
                     $row_attr = $v2->attributes();
-                    if (! in_array((string) $row_attr['name'], $tempRow)) {
+                    if (! array_search((string) $row_attr['name'], $tempRow)) {
                         $tempRow[] = (string) $row_attr['name'];
                     }
                     $tempCells[] = (string) $v2;
@@ -277,7 +278,9 @@ class ImportXml extends ImportPlugin
                 $tempCells = [];
             }
 
-            unset($tempRow, $tempCells, $xml);
+            unset($tempRow);
+            unset($tempCells);
+            unset($xml);
 
             /**
              * Bring accumulated rows into the corresponding table
@@ -308,7 +311,9 @@ class ImportXml extends ImportPlugin
             }
         }
 
-        unset($xml, $tempCells, $rows);
+        unset($xml);
+        unset($tempCells);
+        unset($rows);
 
         /**
          * Only build SQL from data if there is data present
@@ -360,7 +365,9 @@ class ImportXml extends ImportPlugin
         /* Created and execute necessary SQL statements from data */
         $this->import->buildSql($db_name, $tables, $analyses, $create, $options, $sql_data);
 
-        unset($analyses, $tables, $create);
+        unset($analyses);
+        unset($tables);
+        unset($create);
 
         /* Commit any possible data in buffers */
         $this->import->runQuery('', '', $sql_data);

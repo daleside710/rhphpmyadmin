@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Library for extracting information about the sub-partitions
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
@@ -8,28 +11,50 @@ namespace PhpMyAdmin;
 
 /**
  * Represents a sub partition of a table
+ *
+ * @package PhpMyAdmin
  */
 class SubPartition
 {
-    /** @var string the database */
+    /**
+     * @var string the database
+     */
     protected $db;
-    /** @var string the table */
+    /**
+     * @var string the table
+     */
     protected $table;
-    /** @var string partition name */
+    /**
+     * @var string partition name
+     */
     protected $name;
-    /** @var int ordinal */
+    /**
+     * @var integer ordinal
+     */
     protected $ordinal;
-    /** @var string partition method */
+    /**
+     * @var string partition method
+     */
     protected $method;
-    /** @var string partition expression */
+    /**
+     * @var string partition expression
+     */
     protected $expression;
-    /** @var int no of table rows in the partition */
+    /**
+     * @var integer no of table rows in the partition
+     */
     protected $rows;
-    /** @var int data length */
+    /**
+     * @var integer data length
+     */
     protected $dataLength;
-    /** @var int index length */
+    /**
+     * @var integer index length
+     */
     protected $indexLength;
-    /** @var string partition comment */
+    /**
+     * @var string partition comment
+     */
     protected $comment;
 
     /**
@@ -118,7 +143,7 @@ class SubPartition
     /**
      * Returns the number of data rows
      *
-     * @return int number of rows
+     * @return integer number of rows
      */
     public function getRows()
     {
@@ -128,7 +153,7 @@ class SubPartition
     /**
      * Returns the data length
      *
-     * @return int data length
+     * @return integer data length
      */
     public function getDataLength()
     {
@@ -138,7 +163,7 @@ class SubPartition
     /**
      * Returns the index length
      *
-     * @return int index length
+     * @return integer index length
      */
     public function getIndexLength()
     {

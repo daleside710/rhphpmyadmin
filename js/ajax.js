@@ -1,3 +1,4 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 
 /* global isStorageSupported */ // js/config.js
 /* global ErrorReport */ // js/error_report.js
@@ -151,13 +152,6 @@ var AJAX = {
      * @return void
      */
     lockPageHandler: function (event) {
-        // don't consider checkbox event
-        if (typeof event.target !== 'undefined') {
-            if (event.target.type === 'checkbox') {
-                return;
-            }
-        }
-
         var newHash = null;
         var oldHash = null;
         var lockId;
@@ -549,9 +543,9 @@ var AJAX = {
                     var source = data.selflink.split('?')[0];
                     // Check for faulty links
                     var $selflinkReplace = {
-                        'index.php?route=/import': 'index.php?route=/table/sql',
-                        'index.php?route=/table/chart': 'index.php?route=/sql',
-                        'index.php?route=/table/gis-visualization': 'index.php?route=/sql'
+                        'import.php': 'tbl_sql.php',
+                        'tbl_chart.php': 'sql.php',
+                        'tbl_gis_visualization.php': 'sql.php'
                     };
                     if ($selflinkReplace[source]) {
                         var replacement = $selflinkReplace[source];
@@ -872,7 +866,7 @@ AJAX.registerOnload('functions.js', function () {
  */
 $(function () {
     var menuContent = $('<div></div>')
-        .append($('#server-breadcrumb').clone())
+        .append($('#serverinfo').clone())
         .append($('#topmenucontainer').clone())
         .html();
     if (history && history.pushState) {
@@ -942,7 +936,7 @@ $(document).on('submit', 'form', AJAX.requestHandler);
  * Gracefully handle fatal server errors
  * (e.g: 500 - Internal server error)
  */
-$(document).on('ajaxError', function (event, request) {
+$(document).ajaxError(function (event, request) {
     if (AJAX.debug) {
         // eslint-disable-next-line no-console
         console.log('AJAX error: status=' + request.status + ', text=' + request.statusText);
@@ -960,7 +954,7 @@ $(document).on('ajaxError', function (event, request) {
             details += '<div>' + Functions.escapeHtml(Messages.strErrorConnection) + '</div>';
         }
         Functions.ajaxShowMessage(
-            '<div class="alert alert-danger" role="alert">' +
+            '<div class="error">' +
             Messages.strErrorProcessingRequest +
             details +
             '</div>',

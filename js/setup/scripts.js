@@ -1,3 +1,4 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Functions used in Setup configuration forms
  */
@@ -102,7 +103,7 @@ function ajaxValidate (parent, id, values) {
             } else {
                 for (var key in response) {
                     var value = response[key];
-                    error[key] = Array.isArray(value) ? value : [value];
+                    error[key] = jQuery.isArray(value) ? value : [value];
                 }
             }
             displayErrors(error);

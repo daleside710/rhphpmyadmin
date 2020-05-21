@@ -1,5 +1,6 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
- * @fileoverview JavaScript functions used on /table/search
+ * @fileoverview JavaScript functions used on tbl_select.php
  *
  * @requires    jQuery
  * @requires    js/functions.js
@@ -77,7 +78,7 @@ AJAX.registerOnload('table/select.js', function () {
             return false;
         });
 
-    var tableRows = $('#fieldset_table_qbe select.column-operator');
+    var tableRows = $('#fieldset_table_qbe select');
     $.each(tableRows, function (index, item) {
         $(item).on('change', function () {
             changeValueFieldType(this, index);
@@ -131,7 +132,7 @@ AJAX.registerOnload('table/select.js', function () {
             }
 
             if (values['geom_func[' + a + ']'] &&
-                $.inArray(values['geom_func[' + a + ']'], geomUnaryFunctions) >= 0) {
+                $.isArray(values['geom_func[' + a + ']'], geomUnaryFunctions) >= 0) {
                 continue;
             }
 
@@ -226,7 +227,7 @@ AJAX.registerOnload('table/select.js', function () {
         var outputGeomFunctions = binaryFunctions.concat(tempArray);
 
         // If the chosen function takes two geometry objects as parameters
-        var $operator = $geomFuncSelector.parents('tr').find(document.querySelectorAll('td:nth-child(5)')).find('select');
+        var $operator = $geomFuncSelector.parents('tr').find('td:nth-child(5)').find('select');
         if ($.inArray($geomFuncSelector.val(), binaryFunctions) >= 0) {
             $operator.prop('readonly', true);
         } else {
@@ -280,8 +281,7 @@ AJAX.registerOnload('table/select.js', function () {
         // Get the column name.
         var columnName = $(this)
             .closest('tr')
-            .find('th')
-            .first()
+            .find('th:first')
             .text();
 
         // Get the data-type of column excluding size.
@@ -297,7 +297,7 @@ AJAX.registerOnload('table/select.js', function () {
         if ((operator === 'BETWEEN' || operator === 'NOT BETWEEN') && dataType) {
             var $msgbox = Functions.ajaxShowMessage();
             $.ajax({
-                url: 'index.php?route=/table/search',
+                url: 'tbl_select.php',
                 type: 'POST',
                 data: {
                     'server': CommonParams.get('server'),

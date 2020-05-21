@@ -1,36 +1,31 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Interface for the zip extension
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin;
 
 use ZipArchive;
-use function array_combine;
-use function count;
-use function crc32;
-use function getdate;
-use function gzcompress;
-use function implode;
-use function is_array;
-use function is_string;
-use function pack;
-use function preg_match;
-use function str_replace;
-use function strcmp;
-use function strlen;
-use function strpos;
-use function substr;
 
 /**
  * Transformations class
+ *
+ * @package PhpMyAdmin
  */
 class ZipExtension
 {
-    /** @var ZipArchive */
+    /**
+     * @var ZipArchive
+     */
     private $zip;
 
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         $this->zip = new ZipArchive();
@@ -62,7 +57,6 @@ class ZipExtension
             if ($this->zip->numFiles === 0) {
                 $error_message = __('No files found inside ZIP archive!');
                 $this->zip->close();
-
                 return [
                     'error' => $error_message,
                     'data' => $file_data,
@@ -79,7 +73,6 @@ class ZipExtension
             if (! isset($specific_entry)) {
                 $file_data = $first_zip_entry;
                 $this->zip->close();
-
                 return [
                     'error' => $error_message,
                     'data' => $file_data,
@@ -101,7 +94,6 @@ class ZipExtension
             }
 
             $this->zip->close();
-
             return [
                 'error' => $error_message,
                 'data' => $file_data,
@@ -109,7 +101,6 @@ class ZipExtension
         } else {
             $error_message = __('Error in ZIP archive:') . ' ' . $this->zip->getStatusString();
             $this->zip->close();
-
             return [
                 'error' => $error_message,
                 'data' => $file_data,
@@ -134,12 +125,10 @@ class ZipExtension
                 if (preg_match($regex, $this->zip->getNameIndex($i))) {
                     $filename = $this->zip->getNameIndex($i);
                     $this->zip->close();
-
                     return $filename;
                 }
             }
         }
-
         return false;
     }
 
@@ -158,7 +147,6 @@ class ZipExtension
         if ($res === true) {
             $num = $this->zip->numFiles;
         }
-
         return $num;
     }
 
@@ -175,10 +163,8 @@ class ZipExtension
         if ($this->zip->open($file) === true) {
             $result = $this->zip->getFromName($entry);
             $this->zip->close();
-
             return $result;
         }
-
         return false;
     }
 
@@ -191,7 +177,7 @@ class ZipExtension
      *
      * @param array|string $data contents of the file/files
      * @param array|string $name name of the file/files in the archive
-     * @param int          $time the current timestamp
+     * @param integer      $time the current timestamp
      *
      * @return string|bool the ZIP file contents, or false if there was an error.
      */
@@ -238,7 +224,7 @@ class ZipExtension
                 $timearray['seconds'] = 0;
             }
 
-            $time = $timearray['year'] - 1980 << 25
+            $time = (($timearray['year'] - 1980) << 25)
             | ($timearray['mon'] << 21)
             | ($timearray['mday'] << 16)
             | ($timearray['hours'] << 11)

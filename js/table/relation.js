@@ -1,5 +1,7 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
- * for table relation
+ * for tbl_relation.php
+ *
  */
 
 var TableRelation = {};
@@ -89,7 +91,7 @@ TableRelation.getDropdownValues = function ($dropdown) {
     }
     $.ajax({
         type: 'POST',
-        url: 'index.php?route=/table/relation',
+        url: 'tbl_relation.php',
         data: params,
         dataType: 'json',
         success: function (data) {
@@ -164,7 +166,7 @@ AJAX.registerOnload('table/relation.js', function () {
 
         // Add foreign field.
         var $sourceElem = $('select[name^="destination_foreign_column[' +
-            $(this).attr('data-index') + ']"]').last().parent();
+            $(this).attr('data-index') + ']"]:last').parent();
         $sourceElem
             .clone(true, true)
             .insertAfter($sourceElem)
@@ -190,15 +192,11 @@ AJAX.registerOnload('table/relation.js', function () {
         $newRow.find('a.add_foreign_key_field').attr('data-index', newIndex);
 
         // Update form parameter names.
-        $newRow.find('select[name^="foreign_key_fields_name"]')
-            .not($newRow.find('select[name^="foreign_key_fields_name"]').first())
-            .find('select[name^="destination_foreign_column"]')
-            .not($newRow.find('select[name^="foreign_key_fields_name"]')
-                .not($newRow.find('select[name^="foreign_key_fields_name"]').first())
-                .find('select[name^="destination_foreign_column"]').first()
-            ).each(function () {
-                $(this).parent().remove();
-            });
+        $newRow.find('select[name^="foreign_key_fields_name"]:not(:first), ' +
+            'select[name^="destination_foreign_column"]:not(:first)'
+        ).each(function () {
+            $(this).parent().remove();
+        });
         $newRow.find('input, select').each(function () {
             $(this).attr('name',
                 $(this).attr('name').replace(/\d/, newIndex)

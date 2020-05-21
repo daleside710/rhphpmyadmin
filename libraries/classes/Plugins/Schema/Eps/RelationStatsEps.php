@@ -1,13 +1,15 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Contains PhpMyAdmin\Plugins\Schema\Eps\RelationStatsEps class
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Plugins\Schema\Eps;
 
 use PhpMyAdmin\Plugins\Schema\RelationStats;
-use function sqrt;
 
 /**
  * Relation preferences/statistics
@@ -17,13 +19,15 @@ use function sqrt;
  * master table's master field to foreign table's foreign key
  * in EPS document.
  *
- * @see     PMA_EPS
- *
+ * @package PhpMyAdmin
  * @name    Relation_Stats_Eps
+ * @see     PMA_EPS
  */
 class RelationStatsEps extends RelationStats
 {
     /**
+     * The "PhpMyAdmin\Plugins\Schema\Eps\RelationStatsEps" constructor
+     *
      * @param Eps    $diagram       The EPS diagram
      * @param string $master_table  The master table name
      * @param string $master_field  The relation field in the master table

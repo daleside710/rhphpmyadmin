@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Holds the PhpMyAdmin\Controllers\AbstractController
+ *
+ * @package PhpMyAdmin\Controllers
  */
 declare(strict_types=1);
 
@@ -12,36 +15,37 @@ use PhpMyAdmin\Template;
 
 /**
  * Base class for all of controller
+ *
+ * @package PhpMyAdmin\Controllers
  */
 abstract class AbstractController
 {
-    /** @var Response */
+    /**
+     * @var Response
+     */
     protected $response;
 
-    /** @var DatabaseInterface */
+    /**
+     * @var DatabaseInterface
+     */
     protected $dbi;
 
-    /** @var Template */
+    /**
+     * @var Template
+     */
     protected $template;
 
     /**
+     * AbstractController constructor.
+     *
      * @param Response          $response Response object
      * @param DatabaseInterface $dbi      DatabaseInterface object
-     * @param Template          $template Template that should be used
+     * @param Template          $template Template that should be used (if provided, default one otherwise)
      */
     public function __construct($response, $dbi, Template $template)
     {
         $this->response = $response;
         $this->dbi = $dbi;
         $this->template = $template;
-    }
-
-    /**
-     * @param string $template Template path name.
-     * @param array  $data     Associative array of template variables.
-     */
-    protected function render(string $template, array $data = []): void
-    {
-        $this->response->addHTML($this->template->render($template, $data));
     }
 }

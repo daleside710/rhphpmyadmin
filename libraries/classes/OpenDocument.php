@@ -1,18 +1,24 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Simple interface for creating OASIS OpenDocument files.
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin;
 
-use function strftime;
+use PhpMyAdmin\ZipExtension;
 
 /**
  * Simplfied OpenDocument creator class
+ *
+ * @package PhpMyAdmin
  */
 class OpenDocument
 {
+
     public const NS = <<<EOT
 xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
 xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
@@ -30,7 +36,7 @@ EOT;
      *
      * @return string  OASIS OpenDocument data
      *
-     * @access public
+     * @access  public
      */
     public static function create($mime, $data)
     {
@@ -51,7 +57,7 @@ EOT;
             . '</office:meta>'
             . '</office:document-meta>',
             '<?xml version="1.0" encoding="UTF-8"?' . '>'
-            . '<office:document-styles ' . self::NS
+            . '<office:document-styles ' . OpenDocument::NS
             . ' office:version="1.0">'
             . '<office:font-face-decls>'
             . '<style:font-face style:name="Arial Unicode MS"'
@@ -168,7 +174,6 @@ EOT;
         ];
 
         $zipExtension = new ZipExtension();
-
         return $zipExtension->createFile($data, $name);
     }
 }

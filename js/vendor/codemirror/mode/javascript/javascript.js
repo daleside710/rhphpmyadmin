@@ -101,9 +101,6 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     } else if (ch == "#") {
       stream.skipToEnd();
       return ret("error", "error");
-    } else if (ch == "<" && stream.match("!--") || ch == "-" && stream.match("->")) {
-      stream.skipToEnd()
-      return ret("comment", "comment")
     } else if (isOperatorChar.test(ch)) {
       if (ch != ">" || !state.lexical || state.lexical.type != ">") {
         if (stream.eat("=")) {
@@ -417,7 +414,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
   }
   function parenExpr(type) {
     if (type != "(") return pass()
-    return cont(pushlex(")"), maybeexpression, expect(")"), poplex)
+    return cont(pushlex(")"), expression, expect(")"), poplex)
   }
   function expressionInner(type, value, noComma) {
     if (cx.state.fatArrowAt == cx.stream.start) {
@@ -446,7 +443,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
   }
 
   function maybeoperatorComma(type, value) {
-    if (type == ",") return cont(maybeexpression);
+    if (type == ",") return cont(expression);
     return maybeoperatorNoComma(type, value, false);
   }
   function maybeoperatorNoComma(type, value, noComma) {

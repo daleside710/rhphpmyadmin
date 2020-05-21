@@ -1,3 +1,4 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * @fileoverview    function used for index manipulation pages
  * @name            Table Structure
@@ -57,7 +58,7 @@ Indexes.checkIndexType = function () {
     /**
      * @var Object Table header for the size column.
      */
-    var $sizeHeader = $('#index_columns').find(document.querySelectorAll('thead tr th:nth-child(2)'));
+    var $sizeHeader = $('#index_columns').find('thead tr th:nth-child(2)');
     /**
      * @var Object Inputs to specify the columns for the index.
      */
@@ -350,7 +351,7 @@ Indexes.showAddIndexDialog = function (sourceArray, arrayIndex, targetColumns, c
             );
         } else {
             Functions.ajaxShowMessage(
-                '<div class="alert alert-danger" role="alert"><img src="themes/dot.gif" title="" alt=""' +
+                '<div class="error"><img src="themes/dot.gif" title="" alt=""' +
                 ' class="icon ic_s_error"> ' + Messages.strMissingColumn +
                 ' </div>', false
             );
@@ -358,7 +359,7 @@ Indexes.showAddIndexDialog = function (sourceArray, arrayIndex, targetColumns, c
             return false;
         }
 
-        $(this).remove();
+        $(this).dialog('close');
     };
     buttonOptions[Messages.strCancel] = function () {
         if (colIndex >= 0) {
@@ -375,7 +376,7 @@ Indexes.showAddIndexDialog = function (sourceArray, arrayIndex, targetColumns, c
         $(this).dialog('close');
     };
     var $msgbox = Functions.ajaxShowMessage();
-    $.post('index.php?route=/table/indexes', postData, function (data) {
+    $.post('tbl_indexes.php', postData, function (data) {
         if (data.success === false) {
             // in the case of an error, show the error message returned.
             Functions.ajaxShowMessage(data.error, false);
@@ -393,15 +394,6 @@ Indexes.showAddIndexDialog = function (sourceArray, arrayIndex, targetColumns, c
                         title: Messages.strAddIndex,
                         width: 450,
                         minHeight: 250,
-                        create: function () {
-                            $(this).on('keypress', function (e) {
-                                if (e.which === 13 || e.keyCode === 13 || window.event.keyCode === 13) {
-                                    e.preventDefault();
-                                    buttonOptions[Messages.strGo]();
-                                    $(this).remove();
-                                }
-                            });
-                        },
                         open: function () {
                             Functions.checkIndexName('index_frm');
                             Functions.showHints($div);
@@ -414,6 +406,8 @@ Indexes.showAddIndexDialog = function (sourceArray, arrayIndex, targetColumns, c
                                 containment: $('#index_columns').find('tbody'),
                                 tolerance: 'pointer'
                             });
+                            // We dont need the slider at this moment.
+                            $(this).find('fieldset.tblFooters').remove();
                         },
                         modal: true,
                         buttons: buttonOptions,
@@ -443,7 +437,7 @@ Indexes.showAddIndexDialog = function (sourceArray, arrayIndex, targetColumns, c
                     );
                 } else {
                     Functions.ajaxShowMessage(
-                        '<div class="alert alert-danger" role="alert"><img src="themes/dot.gif" title="" alt=""' +
+                        '<div class="error"><img src="themes/dot.gif" title="" alt=""' +
                         ' class="icon ic_s_error"> ' + Messages.strMissingColumn +
                         ' </div>', false
                     );
@@ -494,7 +488,7 @@ Indexes.indexTypeSelectionDialog = function (sourceArray, indexChoice, colIndex)
             if ($('input[name="composite_with"]').length !== 0 && $('input[name="composite_with"]:checked').length === 0
             ) {
                 Functions.ajaxShowMessage(
-                    '<div class="alert alert-danger" role="alert"><img src="themes/dot.gif" title=""' +
+                    '<div class="error"><img src="themes/dot.gif" title=""' +
                     ' alt="" class="icon ic_s_error"> ' +
                     Messages.strFormEmpty +
                     ' </div>',
@@ -631,9 +625,9 @@ AJAX.registerOnload('indexes.js', function () {
          * @var $currRow Object containing reference to the current field's row
          */
         var $currRow = $anchor.parents('tr');
-        /** @var {number} rows Number of columns in the key */
+        /** @var    Number of columns in the key */
         var rows = $anchor.parents('td').attr('rowspan') || 1;
-        /** @var {number} $rowsToHide Rows that should be hidden */
+        /** @var    Rows that should be hidden */
         var $rowsToHide = $currRow;
         for (var i = 1, $lastRow = $currRow.next(); i < rows; i++, $lastRow = $lastRow.next()) {
             $rowsToHide = $rowsToHide.add($lastRow);
@@ -658,7 +652,7 @@ AJAX.registerOnload('indexes.js', function () {
                             $('div.no_indexes_defined').show('medium');
                             $rowsToHide.remove();
                         });
-                        $tableRef.siblings('.alert-primary').hide('medium');
+                        $tableRef.siblings('div.notice').hide('medium');
                     } else {
                         // We are removing some of the rows only
                         $rowsToHide.hide('medium', function () {
@@ -674,8 +668,10 @@ AJAX.registerOnload('indexes.js', function () {
                             .prependTo('#structure_content');
                         Functions.highlightSql($('#page_content'));
                     }
+                    CommonActions.refreshMain(false, function () {
+                        $('a.ajax[href^=#indexes]').trigger('click');
+                    });
                     Navigation.reload();
-                    CommonActions.refreshMain('index.php?route=/table/structure');
                 } else {
                     Functions.ajaxShowMessage(Messages.strErrorProcessingRequest + ' : ' + data.error, false);
                 }
@@ -709,7 +705,10 @@ AJAX.registerOnload('indexes.js', function () {
         }
         url += CommonParams.get('arg_separator') + 'ajax_request=true';
         Functions.indexEditorDialog(url, title, function () {
-            CommonActions.refreshMain('index.php?route=/table/structure');
+            // refresh the page using ajax
+            CommonActions.refreshMain(false, function () {
+                $('a.ajax[href^=#indexes]').trigger('click');
+            });
         });
     });
 

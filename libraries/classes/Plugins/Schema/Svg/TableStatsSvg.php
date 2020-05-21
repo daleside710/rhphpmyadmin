@@ -1,17 +1,17 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Contains PhpMyAdmin\Plugins\Schema\Svg\TableStatsSvg class
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Plugins\Schema\Svg;
 
+use PhpMyAdmin\Font;
 use PhpMyAdmin\Plugins\Schema\ExportRelationSchema;
 use PhpMyAdmin\Plugins\Schema\TableStats;
-use function count;
-use function in_array;
-use function max;
-use function sprintf;
 
 /**
  * Table preferences/statistics
@@ -19,9 +19,9 @@ use function sprintf;
  * This class preserves the table co-ordinates,fields
  * and helps in drawing/generating the Tables in SVG XML document.
  *
- * @see     PMA_SVG
- *
+ * @package PhpMyAdmin
  * @name    Table_Stats_Svg
+ * @see     PMA_SVG
  */
 class TableStatsSvg extends TableStats
 {
@@ -32,19 +32,22 @@ class TableStatsSvg extends TableStats
     public $currentCell = 0;
 
     /**
+     * The "PhpMyAdmin\Plugins\Schema\Svg\TableStatsSvg" constructor
+     *
+     * @param object  $diagram         The current SVG image document
+     * @param string  $db              The database name
+     * @param string  $tableName       The table name
+     * @param string  $font            Font face
+     * @param integer $fontSize        The font size
+     * @param integer $pageNumber      Page number
+     * @param integer $same_wide_width The max. width among tables
+     * @param boolean $showKeys        Whether to display keys or not
+     * @param boolean $tableDimension  Whether to display table position or not
+     * @param boolean $offline         Whether the coordinates are sent
+     *
+     *
      * @see PMA_SVG, Table_Stats_Svg::Table_Stats_setWidth,
      *       PhpMyAdmin\Plugins\Schema\Svg\TableStatsSvg::Table_Stats_setHeight
-     *
-     * @param object $diagram         The current SVG image document
-     * @param string $db              The database name
-     * @param string $tableName       The table name
-     * @param string $font            Font face
-     * @param int    $fontSize        The font size
-     * @param int    $pageNumber      Page number
-     * @param int    $same_wide_width The max. width among tables
-     * @param bool   $showKeys        Whether to display keys or not
-     * @param bool   $tableDimension  Whether to display table position or not
-     * @param bool   $offline         Whether the coordinates are sent
      */
     public function __construct(
         $diagram,
@@ -83,11 +86,11 @@ class TableStatsSvg extends TableStats
      *
      * @return void
      */
-    protected function showMissingTableError(): void
+    protected function showMissingTableError()
     {
         ExportRelationSchema::dieSchema(
             $this->pageNumber,
-            'SVG',
+            "SVG",
             sprintf(__('The %s table doesn\'t exist!'), $this->tableName)
         );
     }
@@ -95,16 +98,15 @@ class TableStatsSvg extends TableStats
     /**
      * Sets the width of the table
      *
-     * @see    PMA_SVG
-     *
-     * @param string $font     The font size
-     * @param int    $fontSize The font size
+     * @param string  $font     The font size
+     * @param integer $fontSize The font size
      *
      * @return void
-     *
      * @access private
+     *
+     * @see    PMA_SVG
      */
-    private function _setWidthTable($font, $fontSize): void
+    private function _setWidthTable($font, $fontSize)
     {
         foreach ($this->fields as $field) {
             $this->width = max(
@@ -128,11 +130,11 @@ class TableStatsSvg extends TableStats
     /**
      * Sets the height of the table
      *
-     * @param int $fontSize font size
+     * @param integer $fontSize font size
      *
      * @return void
      */
-    private function _setHeightTable($fontSize): void
+    private function _setHeightTable($fontSize)
     {
         $this->heightCell = $fontSize + 4;
         $this->height = (count($this->fields) + 1) * $this->heightCell;
@@ -141,15 +143,14 @@ class TableStatsSvg extends TableStats
     /**
      * draw the table
      *
-     * @see    PMA_SVG,PMA_SVG::printElement
-     *
-     * @param bool $showColor Whether to display color
-     *
-     * @return void
+     * @param boolean $showColor Whether to display color
      *
      * @access public
+     * @return void
+     *
+     * @see    PMA_SVG,PMA_SVG::printElement
      */
-    public function tableDraw($showColor): void
+    public function tableDraw($showColor)
     {
         $this->diagram->printElement(
             'rect',

@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Holds the PhpMyAdmin\Controllers\Setup\AbstractController
+ *
+ * @package PhpMyAdmin\Controllers\Setup
  */
 declare(strict_types=1);
 
@@ -10,17 +13,26 @@ use PhpMyAdmin\Config\ConfigFile;
 use PhpMyAdmin\Config\Forms\BaseForm;
 use PhpMyAdmin\Config\Forms\Setup\SetupFormList;
 use PhpMyAdmin\Template;
-use function in_array;
 
+/**
+ * Class AbstractController
+ * @package PhpMyAdmin\Controllers\Setup
+ */
 abstract class AbstractController
 {
-    /** @var ConfigFile */
+    /**
+     * @var ConfigFile
+     */
     protected $config;
 
-    /** @var Template */
+    /**
+     * @var Template
+     */
     protected $template;
 
     /**
+     * AbstractController constructor.
+     *
      * @param ConfigFile $config   ConfigFile instance
      * @param Template   $template Template instance
      */

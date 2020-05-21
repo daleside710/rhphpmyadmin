@@ -1,17 +1,16 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * PhpMyAdmin\Server\Status\Data class
  * Used by server_status_*.php pages
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Server\Status;
 
-use PhpMyAdmin\ReplicationInfo;
 use PhpMyAdmin\Url;
-use function basename;
-use function mb_strpos;
-use function mb_strtolower;
 
 /**
  * This class provides data about the server status
@@ -21,6 +20,8 @@ use function mb_strtolower;
  * TODO: Use lazy initialisation for some of the properties
  *       since not all of the server_status_*.php pages need
  *       all the data that this class provides.
+ *
+ * @package PhpMyAdmin
  */
 class Data
 {
@@ -149,7 +150,7 @@ class Data
             'params' => Url::getCommon(['flush' => 'TABLES'], ''),
         ];
         $links['table'][__('Show open tables')] = [
-            'url' => Url::getFromRoute('/sql'),
+            'url' => 'sql.php',
             'params' => Url::getCommon([
                 'sql_query' => 'SHOW OPEN TABLES',
                 'goto' => $this->selfUrl,
@@ -158,7 +159,7 @@ class Data
 
         if ($GLOBALS['replication_info']['master']['status']) {
             $links['repl'][__('Show slave hosts')] = [
-                'url' => Url::getFromRoute('/sql'),
+                'url' => 'sql.php',
                 'params' => Url::getCommon([
                     'sql_query' => 'SHOW SLAVE HOSTS',
                     'goto' => $this->selfUrl,
@@ -193,12 +194,15 @@ class Data
         $links['Slow_queries']['doc'] = 'slow_query_log';
 
         $links['innodb'][__('Variables')] = [
-            'url' => Url::getFromRoute('/server/engines/InnoDB'),
-            'params' => '',
+            'url' => 'server_engines.php',
+            'params' => Url::getCommon(['engine' => 'InnoDB'], ''),
         ];
         $links['innodb'][__('InnoDB Status')] = [
-            'url' => Url::getFromRoute('/server/engines/InnoDB/Status'),
-            'params' => '',
+            'url' => 'server_engines.php',
+            'params' => Url::getCommon([
+                'engine' => 'InnoDB',
+                'page' => 'Status',
+            ], ''),
         ];
         $links['innodb']['doc'] = 'innodb';
 
@@ -216,7 +220,8 @@ class Data
     private function _calculateValues(array $server_status, array $server_variables)
     {
         // Key_buffer_fraction
-        if (isset($server_status['Key_blocks_unused'], $server_variables['key_cache_block_size'])
+        if (isset($server_status['Key_blocks_unused'])
+            && isset($server_variables['key_cache_block_size'])
             && isset($server_variables['key_buffer_size'])
             && $server_variables['key_buffer_size'] != 0
         ) {
@@ -226,7 +231,8 @@ class Data
                 * $server_variables['key_cache_block_size']
                 / $server_variables['key_buffer_size']
                 * 100;
-        } elseif (isset($server_status['Key_blocks_used'], $server_variables['key_buffer_size'])
+        } elseif (isset($server_status['Key_blocks_used'])
+            && isset($server_variables['key_buffer_size'])
             && $server_variables['key_buffer_size'] != 0
         ) {
             $server_status['Key_buffer_fraction_%']
@@ -236,7 +242,8 @@ class Data
         }
 
         // Ratio for key read/write
-        if (isset($server_status['Key_writes'], $server_status['Key_write_requests'])
+        if (isset($server_status['Key_writes'])
+            && isset($server_status['Key_write_requests'])
             && $server_status['Key_write_requests'] > 0
         ) {
             $key_writes = $server_status['Key_writes'];
@@ -245,7 +252,8 @@ class Data
                 = 100 * $key_writes / $key_write_requests;
         }
 
-        if (isset($server_status['Key_reads'], $server_status['Key_read_requests'])
+        if (isset($server_status['Key_reads'])
+            && isset($server_status['Key_read_requests'])
             && $server_status['Key_read_requests'] > 0
         ) {
             $key_reads = $server_status['Key_reads'];
@@ -255,14 +263,14 @@ class Data
         }
 
         // Threads_cache_hitrate
-        if (isset($server_status['Threads_created'], $server_status['Connections'])
+        if (isset($server_status['Threads_created'])
+            && isset($server_status['Connections'])
             && $server_status['Connections'] > 0
         ) {
             $server_status['Threads_cache_hitrate_%']
                 = 100 - $server_status['Threads_created']
                 / $server_status['Connections'] * 100;
         }
-
         return $server_status;
     }
 
@@ -302,7 +310,6 @@ class Data
                 $sectionUsed['other'] = true;
             }
         }
-
         return [
             $allocationMap,
             $sectionUsed,
@@ -310,14 +317,11 @@ class Data
         ];
     }
 
+    /**
+     * Constructor
+     */
     public function __construct()
     {
-        global $replication_info;
-
-        if (! isset($replication_info)) {
-            ReplicationInfo::load();
-        }
-
         $this->selfUrl = basename($GLOBALS['PMA_PHP_SELF']);
 
         // get status from server
@@ -384,9 +388,8 @@ class Data
 
         // Set all class properties
         $this->db_isLocal = false;
-        // can be null if $cfg['ServerDefault'] = 0;
         $serverHostToLower = mb_strtolower(
-            (string) $GLOBALS['cfg']['Server']['host']
+            $GLOBALS['cfg']['Server']['host']
         );
         if ($serverHostToLower === 'localhost'
             || $GLOBALS['cfg']['Server']['host'] === '127.0.0.1'
@@ -418,11 +421,10 @@ class Data
             'Com_dealloc_sql' => 'Com_stmt_close',
         ];
         foreach ($deprecated as $old => $new) {
-            if (isset($server_status[$old], $server_status[$new])) {
+            if (isset($server_status[$old]) && isset($server_status[$new])) {
                 unset($server_status[$old]);
             }
         }
-
         return $server_status;
     }
 }

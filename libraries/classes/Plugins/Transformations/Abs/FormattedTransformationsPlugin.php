@@ -1,6 +1,10 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Abstract class for the formatted transformations plugins
+ *
+ * @package    PhpMyAdmin-Transformations
+ * @subpackage Formatted
  */
 declare(strict_types=1);
 
@@ -8,10 +12,11 @@ namespace PhpMyAdmin\Plugins\Transformations\Abs;
 
 use PhpMyAdmin\Plugins\TransformationsPlugin;
 use stdClass;
-use function strtr;
 
 /**
  * Provides common methods for all of the formatted transformations plugins.
+ *
+ * @package PhpMyAdmin
  */
 abstract class FormattedTransformationsPlugin extends TransformationsPlugin
 {
@@ -45,6 +50,7 @@ abstract class FormattedTransformationsPlugin extends TransformationsPlugin
             . '" sandbox=""></iframe>';
     }
 
+
     /* ~~~~~~~~~~~~~~~~~~~~ Getters and Setters ~~~~~~~~~~~~~~~~~~~~ */
 
     /**
@@ -54,6 +60,6 @@ abstract class FormattedTransformationsPlugin extends TransformationsPlugin
      */
     public static function getName()
     {
-        return 'Formatted';
+        return "Formatted";
     }
 }

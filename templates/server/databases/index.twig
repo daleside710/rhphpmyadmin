@@ -1,21 +1,17 @@
-<div class="container-fluid">
-<div class="row">
-  <h2>
-    {{ get_image('s_db') }}
-    {% if has_statistics %}
-      {% trans 'Databases statistics' %}
-    {% else %}
-      {% trans 'Databases' %}
-    {% endif %}
-  </h2>
-</div>
+<h2>
+  {{ get_image('s_db') }}
+  {% if has_statistics %}
+    {% trans 'Databases statistics' %}
+  {% else %}
+    {% trans 'Databases' %}
+  {% endif %}
+</h2>
 
 {% if is_create_database_shown %}
-<div class="row">
   <ul>
     <li id="li_create_database" class="no_bullets">
       {% if has_create_database_privileges %}
-        <form method="post" action="{{ url('/server/databases/create') }}" id="create_database_form" class="ajax">
+        <form method="post" action="server_databases.php" id="create_database_form" class="ajax">
           <p>
             <strong>
               <label for="text_create_db">
@@ -74,26 +70,24 @@
       {% endif %}
     </li>
   </ul>
-</div>
 {% endif %}
 
 {% if database_count > 0 %}
   {% include 'filter.twig' with {'filter_value': ''} only %}
 
-  <div id="tableslistcontainer row">
-  <div class="container-fluid">
+  <div id="tableslistcontainer">
     {{ get_list_navigator(
       database_count,
       pos,
       url_params,
-      url('/server/databases'),
+      'server_databases.php',
       'frame_content',
       max_db_list
     ) }}
 
-    <form class="ajax" action="{{ url('/server/databases') }}" method="post" name="dbStatsForm" id="dbStatsForm">
+    <form class="ajax" action="server_databases.php" method="post" name="dbStatsForm" id="dbStatsForm">
       {{ get_hidden_inputs(url_params) }}
-      <div class="responsivetable row">
+      <div class="responsivetable">
         <table id="tabledatabases" class="data">
           <thead>
             <tr>
@@ -101,7 +95,7 @@
                 <th></th>
               {% endif %}
               <th>
-                <a href="{{ url('/server/databases', url_params|merge({
+                <a href="server_databases.php{{ get_common(url_params|merge({
                   'sort_by': 'SCHEMA_NAME',
                   'sort_order': url_params.sort_by == 'SCHEMA_NAME'
                   and url_params.sort_order == 'asc' ? 'desc' : 'asc'
@@ -118,7 +112,7 @@
               </th>
 
               <th>
-                <a href="{{ url('/server/databases', url_params|merge({
+                <a href="server_databases.php{{ get_common(url_params|merge({
                   'sort_by': 'DEFAULT_COLLATION_NAME',
                   'sort_order': url_params.sort_by == 'DEFAULT_COLLATION_NAME'
                     and url_params.sort_order == 'asc' ? 'desc' : 'asc'
@@ -137,7 +131,7 @@
               {% if has_statistics %}
                 {% for name, statistic in header_statistics %}
                   <th{{ statistic.format == 'byte' ? ' colspan="2"' }}>
-                    <a href="{{ url('/server/databases', url_params|merge({
+                    <a href="server_databases.php{{ get_common(url_params|merge({
                       'sort_by': name,
                       'sort_order': url_params.sort_by == name
                       and url_params.sort_order == 'asc' ? 'desc' : 'asc'
@@ -169,18 +163,19 @@
 
           <tbody>
             {% for database in databases %}
-              <tr class="db-row{{ database.is_system_schema or database.is_pmadb ? ' noclick' }}" data-filter-row="{{ database.name|upper }}">
+              <tr class="db-row{{ database.is_system_schema ? ' noclick' }}" data-filter-row="{{ database.name|upper }}">
                 {% if is_drop_allowed %}
                   <td class="tool">
                     <input type="checkbox" name="selected_dbs[]" class="checkall" title="
                       {{- database.name }}" value="
                       {{- database.name }}"
-                      {{- database.is_system_schema or database.is_pmadb ? ' disabled' }}>
+                      {{- database.is_system_schema ? ' disabled' }}>
                   </td>
                 {% endif %}
 
                 <td class="name">
-                  <a href="{{ database.url }}" title="
+                  <a href="{{ get_script_name_for_option(default_tab_database, 'database') }}
+                    {{- get_common({'db': database.name}) }}" title="
                     {{- "Jump to database '%s'"|trans|format(database.name) }}">
                     {{ database.name }}
                   </a>
@@ -214,11 +209,11 @@
 
                 {% if database.replication.master.status %}
                   {% if database.replication.master.is_replicated %}
-                    <td class="tool text-center">
+                    <td class="tool center">
                       {{ get_icon('s_success', 'Replicated'|trans) }}
                     </td>
                   {% else %}
-                    <td class="tool text-center">
+                    <td class="tool center">
                       {{ get_icon('s_cancel', 'Not replicated'|trans) }}
                     </td>
                   {% endif %}
@@ -226,11 +221,11 @@
 
                 {% if database.replication.slave.status %}
                   {% if database.replication.slave.is_replicated %}
-                    <td class="tool text-center">
+                    <td class="tool center">
                       {{ get_icon('s_success', 'Replicated'|trans) }}
                     </td>
                   {% else %}
-                    <td class="tool text-center">
+                    <td class="tool center">
                       {{ get_icon('s_cancel', 'Not replicated'|trans) }}
                     </td>
                   {% endif %}
@@ -238,10 +233,11 @@
 
                 <td class="tool">
                   <a class="server_databases" data="
-                    {{- database.name|js_format }}" href="{{ url('/server/privileges', {
-                      'db': database.name,
-                      'checkprivsdb': database.name
-                    }) }}" title="
+                    {{- database.name|js_format }}" href="server_privileges.php
+                    {{- get_common({
+                          'db': database.name,
+                          'checkprivsdb': database.name
+                        }) }}" title="
                     {{- 'Check privileges for database "%s".'|trans|format(database.name) }}">
                     {{ get_icon('s_rights', 'Check privileges'|trans) }}
                   </a>
@@ -311,24 +307,17 @@
 
       {# Enable statistics #}
       {% if not has_statistics %}
-        <div class="row">
-          {{ 'Note: Enabling the database statistics here might cause heavy traffic between the web server and the MySQL server.'|trans|notice }}
-        </div>
-
-        <div class="row">
-          <ul>
-            <li class="li_switch_dbstats">
-              <a href="{{ url('/server/databases') }}" data-post="{{ get_common({'statistics': '1'}, '') }}" title="{% trans 'Enable statistics' %}">
-                <strong>{% trans 'Enable statistics' %}</strong>
-              </a>
-            </li>
-          </ul>
-        </div>
+        {{ 'Note: Enabling the database statistics here might cause heavy traffic between the web server and the MySQL server.'|trans|notice }}
+        <ul>
+          <li class="li_switch_dbstats">
+            <a href="server_databases.php" data-post="{{ get_common({'statistics': '1'}, '') }}" title="{% trans 'Enable statistics' %}">
+              <strong>{% trans 'Enable statistics' %}</strong>
+            </a>
+          </li>
+        </ul>
       {% endif %}
     </form>
   </div>
-  </div>
-</div>
 {% else %}
   <p>{{ 'No databases'|trans|notice }}</p>
 {% endif %}

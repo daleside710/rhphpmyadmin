@@ -1,3 +1,4 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Functions used in configuration forms and on user preferences pages
  */
@@ -44,9 +45,9 @@ AJAX.registerTeardown('config.js', function () {
 });
 
 AJAX.registerOnload('config.js', function () {
-    var $topmenuUpt = $('#user_prefs_tabs');
-    $topmenuUpt.find('a.active').attr('rel', 'samepage');
-    $topmenuUpt.find('a:not(.active)').attr('rel', 'newpage');
+    var $topmenuUpt = $('#topmenu2.user_prefs_tabs');
+    $topmenuUpt.find('li.active a').attr('rel', 'samepage');
+    $topmenuUpt.find('li:not(.active) a').attr('rel', 'newpage');
 });
 
 // default values for fields
@@ -615,10 +616,10 @@ function setupConfigTabs () {
                 e.preventDefault();
                 setTab($(this).attr('href').substr(1));
             })
-            .first()
+            .filter(':first')
             .parent()
             .addClass('active');
-        $this.find('div.tabs_contents fieldset').hide().first().show();
+        $this.find('div.tabs_contents fieldset').hide().filter(':first').show();
     });
 }
 
@@ -636,18 +637,23 @@ AJAX.registerOnload('config.js', function () {
     setupConfigTabs();
     adjustPrefsNotification();
 
-    // tab links handling
+    // tab links handling, check each 200ms
     // (works with history in FF, further browser support here would be an overkill)
-    window.onhashchange = function () {
-        if (location.hash.match(/^#tab_[a-zA-Z0-9_]+$/)) {
-            // session ID is sometimes appended here
-            var hash = location.hash.substr(5).split('&')[0];
-            if ($('#' + hash).length) {
-                setTab(hash);
+    var prevHash;
+    var tabCheckFnc = function () {
+        if (location.hash !== prevHash) {
+            prevHash = location.hash;
+            if (prevHash.match(/^#tab_[a-zA-Z0-9_]+$/)) {
+                // session ID is sometimes appended here
+                var hash = prevHash.substr(5).split('&')[0];
+                if ($('#' + hash).length) {
+                    setTab(hash);
+                }
             }
         }
     };
-    window.onhashchange();
+    tabCheckFnc();
+    setInterval(tabCheckFnc, 200);
 });
 
 //
@@ -770,7 +776,7 @@ AJAX.registerOnload('config.js', function () {
             disabled = true;
         }
         $form.find('input[type=submit]').prop('disabled', disabled);
-    }).on('submit', function (e) {
+    }).submit(function (e) {
         var $form = $(this);
         if ($form.attr('name') === 'prefs_export' && $('#export_local_storage')[0].checked) {
             e.preventDefault();
@@ -785,7 +791,7 @@ AJAX.registerOnload('config.js', function () {
     $(document).on('click', 'div.click-hide-message', function () {
         $(this)
             .hide()
-            .parent('.card-body')
+            .parent('.group')
             .css('height', '')
             .next('form')
             .show();
@@ -802,7 +808,7 @@ function savePrefsToLocalStorage (form) {
     var submit = $form.find('input[type=submit]');
     submit.prop('disabled', true);
     $.ajax({
-        url: 'index.php?route=/preferences/manage',
+        url: 'prefs_manage.php',
         cache: false,
         type: 'POST',
         data: {
@@ -818,7 +824,7 @@ function savePrefsToLocalStorage (form) {
                 updatePrefsDate();
                 $('div.localStorage-empty').hide();
                 $('div.localStorage-exists').show();
-                var group = $form.parent('.card-body');
+                var group = $form.parent('.group');
                 group.css('height', group.height() + 'px');
                 $form.hide('fast');
                 $form.prev('.click-hide-message').show('fast');

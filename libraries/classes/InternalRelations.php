@@ -1,6 +1,8 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Internal relations for information schema and mysql databases.
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
@@ -8,10 +10,13 @@ namespace PhpMyAdmin;
 
 /**
  * Internal relations for information schema and mysql databases.
+ * @package PhpMyAdmin
  */
 class InternalRelations
 {
-    /** @var array */
+    /**
+     * @var array
+     */
     private static $informationSchema = [
         'CHARACTER_SETS' => [
             'DEFAULT_COLLATE_NAME' => [
@@ -324,7 +329,9 @@ class InternalRelations
         ],
     ];
 
-    /** @var array */
+    /**
+     * @var array
+     */
     private static $mysql = [
         'columns_priv' => [
             'Db' => [

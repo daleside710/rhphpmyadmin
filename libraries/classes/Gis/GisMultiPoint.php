@@ -1,25 +1,20 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Handles actions related to GIS MULTIPOINT objects
+ *
+ * @package PhpMyAdmin-GIS
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Gis;
 
 use TCPDF;
-use function count;
-use function hexdec;
-use function imagearc;
-use function imagecolorallocate;
-use function imagestring;
-use function json_encode;
-use function mb_strlen;
-use function mb_substr;
-use function mt_rand;
-use function trim;
 
 /**
  * Handles actions related to GIS MULTIPOINT objects
+ *
+ * @package PhpMyAdmin-GIS
  */
 class GisMultiPoint extends GisGeometry
 {
@@ -39,7 +34,6 @@ class GisMultiPoint extends GisGeometry
      * Returns the singleton.
      *
      * @return GisMultiPoint the singleton
-     *
      * @access public
      */
     public static function singleton()
@@ -57,7 +51,6 @@ class GisMultiPoint extends GisGeometry
      * @param string $spatial spatial data of a row
      *
      * @return array an array containing the min, max values for x and y coordinates
-     *
      * @access public
      */
     public function scaleRow($spatial)
@@ -83,7 +76,6 @@ class GisMultiPoint extends GisGeometry
      * @param resource    $image       Image object
      *
      * @return resource the modified image object
-     *
      * @access public
      */
     public function prepareRowAsPng(
@@ -142,7 +134,6 @@ class GisMultiPoint extends GisGeometry
      * @param TCPDF       $pdf         TCPDF instance
      *
      * @return TCPDF the modified TCPDF instance
-     *
      * @access public
      */
     public function prepareRowAsPdf(
@@ -201,7 +192,6 @@ class GisMultiPoint extends GisGeometry
      * @param array  $scale_data  Array containing data related to scaling
      *
      * @return string the code related to a row in the GIS dataset
-     *
      * @access public
      */
     public function prepareRowAsSvg($spatial, $label, $point_color, array $scale_data)
@@ -250,7 +240,6 @@ class GisMultiPoint extends GisGeometry
      * @param array  $scale_data  Array containing data related to scaling
      *
      * @return string JavaScript related to a row in the GIS dataset
-     *
      * @access public
      */
     public function prepareRowAsOl(
@@ -283,10 +272,12 @@ class GisMultiPoint extends GisGeometry
             );
         $points_arr = $this->extractPoints($multipoint, null);
 
-        return $result . 'vectorLayer.addFeatures(new OpenLayers.Feature.Vector('
+        $result .= 'vectorLayer.addFeatures(new OpenLayers.Feature.Vector('
             . 'new OpenLayers.Geometry.MultiPoint('
             . $this->getPointsArrayForOpenLayers($points_arr, $srid)
             . '), null, ' . json_encode($style_options) . '));';
+
+        return $result;
     }
 
     /**
@@ -297,22 +288,22 @@ class GisMultiPoint extends GisGeometry
      * @param string $empty    Multipoint does not adhere to this
      *
      * @return string WKT with the set of parameters passed by the GIS editor
-     *
      * @access public
      */
     public function generateWkt(array $gis_data, $index, $empty = '')
     {
-        $no_of_points = $gis_data[$index]['MULTIPOINT']['no_of_points'] ?? 1;
+        $no_of_points = isset($gis_data[$index]['MULTIPOINT']['no_of_points'])
+            ? $gis_data[$index]['MULTIPOINT']['no_of_points'] : 1;
         if ($no_of_points < 1) {
             $no_of_points = 1;
         }
         $wkt = 'MULTIPOINT(';
         for ($i = 0; $i < $no_of_points; $i++) {
-            $wkt .= (isset($gis_data[$index]['MULTIPOINT'][$i]['x'])
-                    && trim((string) $gis_data[$index]['MULTIPOINT'][$i]['x']) != ''
+            $wkt .= ((isset($gis_data[$index]['MULTIPOINT'][$i]['x'])
+                    && trim((string) $gis_data[$index]['MULTIPOINT'][$i]['x']) != '')
                     ? $gis_data[$index]['MULTIPOINT'][$i]['x'] : '')
-                . ' ' . (isset($gis_data[$index]['MULTIPOINT'][$i]['y'])
-                    && trim((string) $gis_data[$index]['MULTIPOINT'][$i]['y']) != ''
+                . ' ' . ((isset($gis_data[$index]['MULTIPOINT'][$i]['y'])
+                    && trim((string) $gis_data[$index]['MULTIPOINT'][$i]['y']) != '')
                     ? $gis_data[$index]['MULTIPOINT'][$i]['y'] : '') . ',';
         }
 
@@ -322,8 +313,9 @@ class GisMultiPoint extends GisGeometry
                 0,
                 mb_strlen($wkt) - 1
             );
+        $wkt .= ')';
 
-        return $wkt . ')';
+        return $wkt;
     }
 
     /**
@@ -332,7 +324,6 @@ class GisMultiPoint extends GisGeometry
      * @param array $row_data GIS data
      *
      * @return string the WKT for the data from ESRI shape files
-     *
      * @access public
      */
     public function getShape(array $row_data)
@@ -349,18 +340,18 @@ class GisMultiPoint extends GisGeometry
                 0,
                 mb_strlen($wkt) - 1
             );
+        $wkt .= ')';
 
-        return $wkt . ')';
+        return $wkt;
     }
 
     /**
      * Generate parameters for the GIS data editor from the value of the GIS column.
      *
-     * @param string $value Value of the GIS column
-     * @param int    $index Index of the geometry
+     * @param string  $value Value of the GIS column
+     * @param integer $index Index of the geometry
      *
      * @return array params for the GIS data editor from the value of the GIS column
-     *
      * @access public
      */
     public function generateParams($value, $index = -1)
@@ -403,7 +394,6 @@ class GisMultiPoint extends GisGeometry
      * @param string $srid       spatial reference id
      *
      * @return string JavaScript for adding an array of points to OpenLayers
-     *
      * @access protected
      */
     protected function getPointsArrayForOpenLayers(array $points_arr, $srid)
@@ -419,7 +409,8 @@ class GisMultiPoint extends GisGeometry
         if (mb_substr($ol_array, $olArrayLength - 2) == ', ') {
             $ol_array = mb_substr($ol_array, 0, $olArrayLength - 2);
         }
+        $ol_array .= ')';
 
-        return $ol_array . ')';
+        return $ol_array;
     }
 }

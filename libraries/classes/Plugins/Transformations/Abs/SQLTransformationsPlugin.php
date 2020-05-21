@@ -1,17 +1,23 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Abstract class for the SQL transformations plugins
+ *
+ * @package    PhpMyAdmin-Transformations
+ * @subpackage SQL
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Plugins\Transformations\Abs;
 
-use PhpMyAdmin\Html\Generator;
 use PhpMyAdmin\Plugins\TransformationsPlugin;
+use PhpMyAdmin\Util;
 use stdClass;
 
 /**
  * Provides common methods for all of the SQL transformations plugins.
+ *
+ * @package PhpMyAdmin
  */
 abstract class SQLTransformationsPlugin extends TransformationsPlugin
 {
@@ -38,8 +44,9 @@ abstract class SQLTransformationsPlugin extends TransformationsPlugin
      */
     public function applyTransformation($buffer, array $options = [], ?stdClass $meta = null)
     {
-        return Generator::formatSql($buffer);
+        return Util::formatSql($buffer);
     }
+
 
     /* ~~~~~~~~~~~~~~~~~~~~ Getters and Setters ~~~~~~~~~~~~~~~~~~~~ */
 
@@ -50,6 +57,6 @@ abstract class SQLTransformationsPlugin extends TransformationsPlugin
      */
     public static function getName()
     {
-        return 'SQL';
+        return "SQL";
     }
 }

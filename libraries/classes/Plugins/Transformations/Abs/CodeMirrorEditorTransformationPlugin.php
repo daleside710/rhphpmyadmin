@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Abstract class for syntax highlighted editors using CodeMirror
+ *
+ * @package PhpMyAdmin-Transformations
  */
 declare(strict_types=1);
 
@@ -8,11 +11,11 @@ namespace PhpMyAdmin\Plugins\Transformations\Abs;
 
 use PhpMyAdmin\Plugins\IOTransformationsPlugin;
 use stdClass;
-use function htmlspecialchars;
-use function strtolower;
 
 /**
  * Provides common methods for all the CodeMirror syntax highlighted editors
+ *
+ * @package PhpMyAdmin-Transformations
  */
 abstract class CodeMirrorEditorTransformationPlugin extends IOTransformationsPlugin
 {
@@ -63,9 +66,10 @@ abstract class CodeMirrorEditorTransformationPlugin extends IOTransformationsPlu
                 . '" value="' . htmlspecialchars($value) . '">';
         }
         $class = 'transform_' . strtolower(static::getName()) . '_editor';
-
-        return $html . '<textarea name="fields' . $column_name_appendix . '"'
+        $html .= '<textarea name="fields' . $column_name_appendix . '"'
             . ' dir="' . $text_dir . '" class="' . $class . '">'
             . htmlspecialchars($value) . '</textarea>';
+
+        return $html;
     }
 }

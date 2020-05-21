@@ -1,3 +1,4 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 
 /* global ColumnType, DataTable, JQPlotChartFactory */ // js/chart.js
 /* global codeMirrorEditor */ // js/functions.js
@@ -360,7 +361,7 @@ AJAX.registerOnload('table/chart.js', function () {
     });
 
     // handler for ajax form submission
-    $('#tblchartform').on('submit', function () {
+    $('#tblchartform').submit(function () {
         var $form = $(this);
         if (codeMirrorEditor) {
             $form[0].elements.sql_query.value = codeMirrorEditor.getValue();

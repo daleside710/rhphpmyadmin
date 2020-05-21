@@ -1,3 +1,4 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * @fileoverview    function used in QBE for DB
  * @name            Database Operations
@@ -9,7 +10,7 @@
  */
 
 /**
- * Ajax event handlers here for /database/qbe
+ * Ajax event handlers here for db_qbe.php
  *
  * Actions Ajaxified here:
  * Select saved search
@@ -31,7 +32,7 @@ AJAX.registerOnload('database/qbe.js', function () {
 
     $('#tblQbe').width($('#tblQbe').parent().width());
     $('#tblQbeFooters').width($('#tblQbeFooters').parent().width());
-    $('#tblQbe').on('resize', function () {
+    $('#tblQbe').resize(function () {
         var newWidthTblQbe = $('#textSqlquery').next().width();
         $('#tblQbe').width(newWidthTblQbe);
         $('#tblQbeFooters').width(newWidthTblQbe);

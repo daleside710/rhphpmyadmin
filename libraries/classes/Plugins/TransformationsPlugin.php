@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Abstract class for the transformations plugins
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
@@ -11,6 +14,8 @@ use stdClass;
 /**
  * Provides a common interface that will have to
  * be implemented by all of the transformations plugins.
+ *
+ * @package PhpMyAdmin
  */
 abstract class TransformationsPlugin implements TransformationsInterface
 {
@@ -46,7 +51,7 @@ abstract class TransformationsPlugin implements TransformationsInterface
      * @param string[] $options  List of passed options
      * @param string[] $defaults List of default values
      *
-     * @return array List of options possibly filled in by defaults.
+     * @return string[] List of options possibly filled in by defaults.
      */
     public function getOptions(array $options, array $defaults)
     {

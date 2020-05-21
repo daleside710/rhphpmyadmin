@@ -1,16 +1,20 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Functionality for the navigation tree
+ *
+ * @package PhpMyAdmin-Navigation
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Navigation\Nodes;
 
-use PhpMyAdmin\Html\Generator;
-use PhpMyAdmin\Url;
+use PhpMyAdmin\Util;
 
 /**
  * Represents a event node in the navigation tree
+ *
+ * @package PhpMyAdmin-Navigation
  */
 class NodeEvent extends NodeDatabaseChild
 {
@@ -25,16 +29,12 @@ class NodeEvent extends NodeDatabaseChild
     public function __construct($name, $type = Node::OBJECT, $isGroup = false)
     {
         parent::__construct($name, $type, $isGroup);
-        $this->icon = Generator::getImage('b_events');
+        $this->icon = Util::getImage('b_events');
         $this->links = [
-            'text' => Url::getFromRoute('/database/events', [
-                'server' => $GLOBALS['server'],
-                'edit_item' => 1,
-            ]) . '&amp;db=%2$s&amp;item_name=%1$s',
-            'icon' => Url::getFromRoute('/database/events', [
-                'server' => $GLOBALS['server'],
-                'export_item' => 1,
-            ]) . '&amp;db=%2$s&amp;item_name=%1$s',
+            'text' => 'db_events.php?server=' . $GLOBALS['server']
+                . '&amp;db=%2$s&amp;item_name=%1$s&amp;edit_item=1',
+            'icon' => 'db_events.php?server=' . $GLOBALS['server']
+                . '&amp;db=%2$s&amp;item_name=%1$s&amp;export_item=1',
         ];
         $this->classes = 'event';
     }

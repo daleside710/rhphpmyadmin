@@ -1,27 +1,25 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * MediaWiki import plugin for phpMyAdmin
+ *
+ * @package    PhpMyAdmin-Import
+ * @subpackage MediaWiki
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Plugins\Import;
 
+use PhpMyAdmin\Import;
 use PhpMyAdmin\Message;
 use PhpMyAdmin\Plugins\ImportPlugin;
 use PhpMyAdmin\Properties\Plugins\ImportPluginProperties;
-use function count;
-use function explode;
-use function mb_strlen;
-use function mb_strpos;
-use function mb_substr;
-use function preg_match;
-use function str_replace;
-use function strcmp;
-use function strlen;
-use function trim;
 
 /**
  * Handles the import for the MediaWiki format
+ *
+ * @package    PhpMyAdmin-Import
+ * @subpackage MediaWiki
  */
 class ImportMediawiki extends ImportPlugin
 {
@@ -32,6 +30,9 @@ class ImportMediawiki extends ImportPlugin
      */
     private $_analyze;
 
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         parent::__construct();
@@ -92,12 +93,7 @@ class ImportMediawiki extends ImportPlugin
         $mediawiki_new_line = "\n";
 
         // Initialize the name of the current table
-        $cur_table_name = '';
-
-        $cur_temp_table_headers = [];
-        $cur_temp_table = [];
-
-        $in_table_header = false;
+        $cur_table_name = "";
 
         while (! $finished && ! $error && ! $timeout_passed) {
             $data = $this->import->getNextChunk();
@@ -145,12 +141,12 @@ class ImportMediawiki extends ImportPlugin
                 $matches = [];
 
                 // Check beginning of comment
-                if (! strcmp(mb_substr($cur_buffer_line, 0, 4), '<!--')) {
+                if (! strcmp(mb_substr($cur_buffer_line, 0, 4), "<!--")) {
                     $inside_comment = true;
                     continue;
                 } elseif ($inside_comment) {
                     // Check end of comment
-                    if (! strcmp(mb_substr($cur_buffer_line, 0, 4), '-->')
+                    if (! strcmp(mb_substr($cur_buffer_line, 0, 4), "-->")
                     ) {
                         // Only data comments are closed. The structure comments
                         // will be closed when a data comment begins (in order to
@@ -167,7 +163,7 @@ class ImportMediawiki extends ImportPlugin
                         // Check table name
                         $match_table_name = [];
                         if (preg_match(
-                            '/^Table data for `(.*)`$/',
+                            "/^Table data for `(.*)`$/",
                             $cur_buffer_line,
                             $match_table_name
                         )
@@ -180,7 +176,7 @@ class ImportMediawiki extends ImportPlugin
                                     $inside_structure_comment
                                 );
                         } elseif (preg_match(
-                            '/^Table structure for `(.*)`$/',
+                            "/^Table structure for `(.*)`$/",
                             $cur_buffer_line,
                             $match_table_name
                         )
@@ -242,7 +238,7 @@ class ImportMediawiki extends ImportPlugin
                         $this->_importDataOneTable($current_table, $sql_data);
 
                         // Reset table name
-                        $cur_table_name = '';
+                        $cur_table_name = "";
                     }
                     // What's after the row tag is now only attributes
                 } elseif (($first_character === '|') || ($first_character === '!')) {
@@ -266,8 +262,8 @@ class ImportMediawiki extends ImportPlugin
                         // Delete the beginning of the column, if there is one
                         $cell = trim($cell);
                         $col_start_chars = [
-                            '|',
-                            '!',
+                            "|",
+                            "!",
                         ];
                         foreach ($col_start_chars as $col_start_char) {
                             $cell = $this->_getCellContent($cell, $col_start_char);
@@ -299,11 +295,12 @@ class ImportMediawiki extends ImportPlugin
      *                        table headers $table[2] -
      *                        array[][] of table content
      *                        rows </code>
+     *
      * @param array $sql_data 2-element array with sql data
      *
-     * @return void
-     *
      * @global bool $analyze whether to scan for column types
+     *
+     * @return void
      */
     private function _importDataOneTable(array $table, array &$sql_data)
     {
@@ -386,9 +383,9 @@ class ImportMediawiki extends ImportPlugin
      *                        )
      * @param array $sql_data 2-element array with sql data
      *
-     * @return void
-     *
      * @global string $db      name of the database to import in
+     *
+     * @return void
      */
     private function _executeImportTables(array &$tables, array &$analyses, array &$sql_data)
     {
@@ -419,7 +416,7 @@ class ImportMediawiki extends ImportPlugin
     private function _delimiterReplace($replace, $subject)
     {
         // String that will be returned
-        $cleaned = '';
+        $cleaned = "";
         // Possible states of current character
         $inside_tag = false;
         $inside_attribute = false;
@@ -457,7 +454,7 @@ class ImportMediawiki extends ImportPlugin
                 // not '|', but the previous one was, it means that the single '|'
                 // was not appended, so we append it now
                 if ($partial_separator && $inside_attribute) {
-                    $cleaned .= '|';
+                    $cleaned .= "|";
                 }
                 // If the char is different from "|", no separator can be formed
                 $partial_separator = false;
@@ -503,7 +500,7 @@ class ImportMediawiki extends ImportPlugin
      */
     private function _explodeMarkup($text)
     {
-        $separator = '||';
+        $separator = "||";
         $placeholder = "\x00";
 
         // Remove placeholder instances
@@ -520,6 +517,7 @@ class ImportMediawiki extends ImportPlugin
 
         return $items;
     }
+
 
     /* ~~~~~~~~~~~~~~~~~~~~ Getters and Setters ~~~~~~~~~~~~~~~~~~~~ */
 
@@ -573,7 +571,7 @@ class ImportMediawiki extends ImportPlugin
     /**
      * Manage $inside_structure_comment
      *
-     * @param bool $inside_structure_comment Value to test
+     * @param boolean $inside_structure_comment Value to test
      *
      * @return bool
      */

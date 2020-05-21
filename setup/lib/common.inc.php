@@ -1,16 +1,20 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Loads libraries/common.inc.php and preforms some additional actions
+ *
+ * @package PhpMyAdmin-Setup
  */
 declare(strict_types=1);
 
 use PhpMyAdmin\Config\ConfigFile;
 use PhpMyAdmin\DatabaseInterface;
 
-// phpcs:disable PSR1.Files.SideEffects
+/**
+ * Do not include full common.
+ * @ignore
+ */
 define('PMA_MINIMUM_COMMON', true);
-// phpcs:enable
-
 chdir('..');
 
 if (! file_exists(ROOT_PATH . 'libraries/common.inc.php')) {

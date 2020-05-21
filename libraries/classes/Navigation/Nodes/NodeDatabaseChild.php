@@ -1,18 +1,24 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Functionality for the navigation tree
+ *
+ * @package PhpMyAdmin-Navigation
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Navigation\Nodes;
 
-use PhpMyAdmin\Html\Generator;
+use PhpMyAdmin\Relation;
 use PhpMyAdmin\Url;
+use PhpMyAdmin\Util;
 
 /**
  * Represents a node that is a child of a database node
  * This may either be a concrete child such as table or a container
  * such as table container
+ *
+ * @package PhpMyAdmin-Navigation
  */
 abstract class NodeDatabaseChild extends Node
 {
@@ -26,9 +32,9 @@ abstract class NodeDatabaseChild extends Node
     /**
      * Returns HTML for control buttons displayed infront of a node
      *
-     * @return string HTML for control buttons
+     * @return String HTML for control buttons
      */
-    public function getHtmlForControlButtons(): string
+    public function getHtmlForControlButtons()
     {
         $ret = '';
         $cfgRelation = $this->relation->getRelationsParam();
@@ -44,10 +50,10 @@ abstract class NodeDatabaseChild extends Node
             ];
 
             $ret = '<span class="navItemControls">'
-                . '<a href="' . Url::getFromRoute('/navigation') . '" data-post="'
+                . '<a href="navigation.php" data-post="'
                 . Url::getCommon($params, '') . '"'
                 . ' class="hideNavItem ajax">'
-                . Generator::getImage('hide', __('Hide'))
+                . Util::getImage('hide', __('Hide'))
                 . '</a></span>';
         }
 

@@ -1,3 +1,4 @@
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * @fileoverview    function used in QBE for DB
  * @name            Database Operations
@@ -10,10 +11,9 @@
  */
 
 /* global generateFromBlock, generateWhereBlock */ // js/database/query_generator.js
-/* global md5 */ // js/vendor/jquery/jquery.md5.js
 
 /**
- * js file for handling AJAX and other events in /database/multi-table-query
+ * js file for handling AJAX and other events in db_multi_table_query.php
  */
 
 /**
@@ -71,7 +71,7 @@ AJAX.registerOnload('database/multi_table_query.js', function () {
         $.ajax({
             type: 'GET',
             async: false,
-            url: 'index.php?route=/database/multi-table-query/tables',
+            url: 'db_multi_table_query.php',
             data: {
                 'server': sessionStorage.server,
                 'db': $('#db_name').val(),
@@ -133,7 +133,7 @@ AJAX.registerOnload('database/multi_table_query.js', function () {
         };
         $.ajax({
             type: 'POST',
-            url: 'index.php?route=/database/multi-table-query/query',
+            url: 'db_multi_table_query.php',
             data: data,
             success: function (data) {
                 var $resultsDom = $(data.message);
@@ -172,7 +172,7 @@ AJAX.registerOnload('database/multi_table_query.js', function () {
                 if ($sibs.length === 0) {
                     $sibs = $(this).parent().parent().find('.columnNameSelect');
                 }
-                $sibs.first().html($('#' + md5($(this).val())).html());
+                $sibs.first().html($('#' + $.md5($(this).val())).html());
             });
         });
 

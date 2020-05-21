@@ -1,48 +1,96 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
+/**
+ * Holds the PhpMyAdmin\Controllers\Table\ChartController
+ *
+ * @package PhpMyAdmin\Controllers
+ */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Controllers\Table;
 
-use PhpMyAdmin\Common;
+use PhpMyAdmin\DatabaseInterface;
 use PhpMyAdmin\Message;
+use PhpMyAdmin\Response;
 use PhpMyAdmin\SqlParser\Components\Limit;
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
-use PhpMyAdmin\Url;
+use PhpMyAdmin\Template;
 use PhpMyAdmin\Util;
-use function array_keys;
-use function htmlspecialchars;
-use function in_array;
-use function json_encode;
-use function min;
-use function strlen;
 
 /**
- * Handles creation of the chart.
+ * Handles table related logic
+ *
+ * @package PhpMyAdmin\Controllers
  */
 class ChartController extends AbstractController
 {
     /**
-     * Execute the query and return the result
+     * @var string
      */
-    public function index(): void
+    protected $sql_query;
+
+    /**
+     * @var string
+     */
+    protected $url_query;
+
+    /**
+     * @var array
+     */
+    protected $cfg;
+
+    /**
+     * Constructor
+     *
+     * @param Response          $response  Response object
+     * @param DatabaseInterface $dbi       DatabaseInterface object
+     * @param Template          $template  Template object
+     * @param string            $db        Database name
+     * @param string            $table     Table name
+     * @param string            $sql_query Query
+     * @param string            $url_query Query URL
+     * @param array             $cfg       Configuration
+     */
+    public function __construct(
+        $response,
+        $dbi,
+        Template $template,
+        $db,
+        $table,
+        $sql_query,
+        $url_query,
+        array $cfg
+    ) {
+        parent::__construct($response, $dbi, $template, $db, $table);
+
+        $this->sql_query = $sql_query;
+        $this->url_query = $url_query;
+        $this->cfg = $cfg;
+    }
+
+    /**
+     * Execute the query and return the result
+     *
+     * @return void
+     */
+    public function indexAction()
     {
-        global $db, $table, $cfg, $sql_query, $url_query;
-
-        if (isset($_REQUEST['pos'], $_REQUEST['session_max_rows']) && $this->response->isAjax()
+        $response = Response::getInstance();
+        if ($response->isAjax()
+            && isset($_REQUEST['pos'])
+            && isset($_REQUEST['session_max_rows'])
         ) {
-            $this->ajax();
-
+            $this->ajaxAction();
             return;
         }
 
         // Throw error if no sql query is set
-        if (! isset($sql_query) || $sql_query == '') {
+        if (! isset($this->sql_query) || $this->sql_query == '') {
             $this->response->setRequestStatus(false);
             $this->response->addHTML(
                 Message::error(__('No SQL query was set to fetch data.'))
             );
-
             return;
         }
 
@@ -63,38 +111,44 @@ class ChartController extends AbstractController
             ]
         );
 
+        /**
+         * Extract values for common work
+         * @todo Extract common files
+         */
+        $db = &$this->db;
+        $table = &$this->table;
         $url_params = [];
 
         /**
          * Runs common work
          */
-        if (strlen($table) > 0) {
+        if (strlen($this->table) > 0) {
             $url_params['goto'] = Util::getScriptNameForOption(
-                $cfg['DefaultTabTable'],
+                $this->cfg['DefaultTabTable'],
                 'table'
             );
-            $url_params['back'] = Url::getFromRoute('/table/sql');
-            Common::table();
-            $this->dbi->selectDb($db);
-        } elseif (strlen($db) > 0) {
+            $url_params['back'] = 'tbl_sql.php';
+            include ROOT_PATH . 'libraries/tbl_common.inc.php';
+            $this->dbi->selectDb($GLOBALS['db']);
+        } elseif (strlen($this->db) > 0) {
             $url_params['goto'] = Util::getScriptNameForOption(
-                $cfg['DefaultTabDatabase'],
+                $this->cfg['DefaultTabDatabase'],
                 'database'
             );
-            $url_params['back'] = Url::getFromRoute('/sql');
-            Common::database();
+            $url_params['back'] = 'sql.php';
+            include ROOT_PATH . 'libraries/db_common.inc.php';
         } else {
             $url_params['goto'] = Util::getScriptNameForOption(
-                $cfg['DefaultTabServer'],
+                $this->cfg['DefaultTabServer'],
                 'server'
             );
-            $url_params['back'] = Url::getFromRoute('/sql');
-            Common::server();
+            $url_params['back'] = 'sql.php';
+            include ROOT_PATH . 'libraries/server_common.inc.php';
         }
 
         $data = [];
 
-        $result = $this->dbi->tryQuery($sql_query);
+        $result = $this->dbi->tryQuery($this->sql_query);
         $fields_meta = $this->dbi->getFieldsMeta($result);
         while ($row = $this->dbi->fetchAssoc($result)) {
             $data[] = $row;
@@ -119,39 +173,47 @@ class ChartController extends AbstractController
                 'message',
                 __('No numeric columns present in the table to plot.')
             );
-
             return;
         }
 
-        $url_params['db'] = $db;
+        $url_params['db'] = $this->db;
         $url_params['reload'] = 1;
 
         /**
          * Displays the page
          */
-        $this->render('table/chart/tbl_chart', [
-            'url_query' => $url_query,
-            'url_params' => $url_params,
-            'keys' => $keys,
-            'fields_meta' => $fields_meta,
-            'numeric_types' => $numeric_types,
-            'numeric_column_count' => $numeric_column_count,
-            'sql_query' => $sql_query,
-        ]);
+        $this->response->addHTML(
+            $this->template->render('table/chart/tbl_chart', [
+                'url_query' => $this->url_query,
+                'url_params' => $url_params,
+                'keys' => $keys,
+                'fields_meta' => $fields_meta,
+                'numeric_types' => $numeric_types,
+                'numeric_column_count' => $numeric_column_count,
+                'sql_query' => $this->sql_query,
+            ])
+        );
     }
 
     /**
      * Handle ajax request
+     *
+     * @return void
      */
-    public function ajax(): void
+    public function ajaxAction()
     {
-        global $db, $table, $sql_query;
+        /**
+         * Extract values for common work
+         * @todo Extract common files
+         */
+        $db = &$this->db;
+        $table = &$this->table;
 
-        if (strlen($table) > 0 && strlen($db) > 0) {
-            Common::table();
+        if (strlen($this->table) > 0 && strlen($this->db) > 0) {
+            include ROOT_PATH . 'libraries/tbl_common.inc.php';
         }
 
-        $parser = new Parser($sql_query);
+        $parser = new Parser($this->sql_query);
         /**
          * @var SelectStatement $statement
          */
@@ -180,7 +242,6 @@ class ChartController extends AbstractController
         if (empty($data)) {
             $this->response->setRequestStatus(false);
             $this->response->addJSON('message', __('No data to display'));
-
             return;
         }
         $sanitized_data = [];

@@ -1,21 +1,22 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Superclass for the Property Group classes.
+ *
+ * @package PhpMyAdmin
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Properties\Options;
 
 use Countable;
-use function array_diff;
-use function count;
-use function in_array;
 
 /**
  * Parents group property items and provides methods to manage groups of
  * properties.
  *
  * @todo    modify descriptions if needed, when the options are integrated
+ * @package PhpMyAdmin
  */
 abstract class OptionsPropertyGroup extends OptionsPropertyItem implements Countable
 {
@@ -60,6 +61,7 @@ abstract class OptionsPropertyGroup extends OptionsPropertyItem implements Count
         );
     }
 
+
     /* ~~~~~~~~~~~~~~~~~~~~ Getters and Setters ~~~~~~~~~~~~~~~~~~~~ */
 
     /**
@@ -92,7 +94,6 @@ abstract class OptionsPropertyGroup extends OptionsPropertyItem implements Count
         if ($this->_properties === null) {
             return 0;
         }
-
         return count($this->_properties);
     }
 

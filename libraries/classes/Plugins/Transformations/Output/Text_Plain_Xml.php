@@ -1,6 +1,10 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Text Plain XML Transformations plugin for phpMyAdmin
+ *
+ * @package    PhpMyAdmin-Transformations
+ * @subpackage SQL
  */
 declare(strict_types=1);
 
@@ -9,14 +13,19 @@ namespace PhpMyAdmin\Plugins\Transformations\Output;
 use PhpMyAdmin\Plugins\TransformationsPlugin;
 use PhpMyAdmin\Response;
 use stdClass;
-use function htmlspecialchars;
 
 /**
  * Handles the XML transformation for text plain
+ *
+ * @package    PhpMyAdmin-Transformations
+ * @subpackage XML
  */
 // @codingStandardsIgnoreLine
 class Text_Plain_Xml extends TransformationsPlugin
 {
+    /**
+     * No-arg constructor
+     */
     public function __construct()
     {
         if (! empty($GLOBALS['cfg']['CodemirrorEnable'])) {
@@ -67,7 +76,7 @@ class Text_Plain_Xml extends TransformationsPlugin
      */
     public static function getMIMEType()
     {
-        return 'Text';
+        return "Text";
     }
 
     /**
@@ -77,7 +86,7 @@ class Text_Plain_Xml extends TransformationsPlugin
      */
     public static function getMIMESubtype()
     {
-        return 'Plain';
+        return "Plain";
     }
 
     /**
@@ -87,6 +96,6 @@ class Text_Plain_Xml extends TransformationsPlugin
      */
     public static function getName()
     {
-        return 'XML';
+        return "XML";
     }
 }

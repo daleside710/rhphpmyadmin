@@ -1,6 +1,9 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Holds the PhpMyAdmin\Controllers\HomeController
+ *
+ * @package PhpMyAdmin\Controllers
  */
 declare(strict_types=1);
 
@@ -10,12 +13,9 @@ use PhpMyAdmin\Charsets;
 use PhpMyAdmin\Charsets\Charset;
 use PhpMyAdmin\Charsets\Collation;
 use PhpMyAdmin\CheckUserPrivileges;
-use PhpMyAdmin\Common;
 use PhpMyAdmin\Config;
 use PhpMyAdmin\DatabaseInterface;
 use PhpMyAdmin\Display\GitRevision;
-use PhpMyAdmin\Git;
-use PhpMyAdmin\Html\Generator;
 use PhpMyAdmin\LanguageManager;
 use PhpMyAdmin\Message;
 use PhpMyAdmin\RecentFavoriteTable;
@@ -27,27 +27,26 @@ use PhpMyAdmin\ThemeManager;
 use PhpMyAdmin\Url;
 use PhpMyAdmin\UserPreferences;
 use PhpMyAdmin\Util;
-use const E_USER_NOTICE;
-use const E_USER_WARNING;
-use const PHP_VERSION;
-use function count;
-use function extension_loaded;
-use function file_exists;
-use function ini_get;
-use function preg_match;
-use function sprintf;
-use function strlen;
-use function trigger_error;
 
+/**
+ * Class HomeController
+ * @package PhpMyAdmin\Controllers
+ */
 class HomeController extends AbstractController
 {
-    /** @var Config */
+    /**
+     * @var Config
+     */
     private $config;
 
-    /** @var ThemeManager */
+    /**
+     * @var ThemeManager
+     */
     private $themeManager;
 
     /**
+     * HomeController constructor.
+     *
      * @param Response          $response     Response instance
      * @param DatabaseInterface $dbi          DatabaseInterface instance
      * @param Template          $template     Template object
@@ -61,26 +60,18 @@ class HomeController extends AbstractController
         $this->themeManager = $themeManager;
     }
 
-    public function index(): void
+
+    /**
+     * @return string HTML
+     */
+    public function index(): string
     {
-        global $cfg, $server, $collation_connection, $message, $show_query, $db, $table;
-
-        if ($this->response->isAjax() && ! empty($_REQUEST['access_time'])) {
-            return;
-        }
-
-        $db = '';
-        $table = '';
-        $show_query = '1';
-
-        if ($server > 0) {
-            Common::server();
-        }
+        global $cfg, $server, $collation_connection, $message;
 
         $languageManager = LanguageManager::getInstance();
 
         if (! empty($message)) {
-            $displayMessage = Generator::getMessage($message);
+            $displayMessage = Util::getMessage($message);
             unset($message);
         }
         if (isset($_SESSION['partial_logout'])) {
@@ -110,13 +101,13 @@ class HomeController extends AbstractController
 
                 if (($cfg['Server']['auth_type'] != 'config') && $cfg['ShowChgPassword']) {
                     $changePassword = $this->template->render('list/item', [
-                        'content' => Generator::getImage('s_passwd') . ' ' . __(
+                        'content' => Util::getImage('s_passwd') . ' ' . __(
                             'Change password'
                         ),
                         'id' => 'li_change_password',
-                        'class' => 'list-group-item',
+                        'class' => 'no_bullets',
                         'url' => [
-                            'href' => Url::getFromRoute('/user-password'),
+                            'href' => 'user_password.php' . Url::getCommon(),
                             'target' => null,
                             'id' => 'change_password_anchor',
                             'class' => 'ajax',
@@ -147,13 +138,13 @@ class HomeController extends AbstractController
                 }
 
                 $userPreferences = $this->template->render('list/item', [
-                    'content' => Generator::getImage('b_tblops') . ' ' . __(
+                    'content' => Util::getImage('b_tblops') . ' ' . __(
                         'More settings'
                     ),
                     'id' => 'li_user_preferences',
-                    'class' => 'list-group-item',
+                    'class' => 'no_bullets',
                     'url' => [
-                        'href' => Url::getFromRoute('/preferences/manage'),
+                        'href' => 'prefs_manage.php' . Url::getCommon(),
                         'target' => null,
                         'id' => null,
                         'class' => null,
@@ -193,7 +184,7 @@ class HomeController extends AbstractController
             $databaseServer = [
                 'host' => $hostInfo,
                 'type' => Util::getServerType(),
-                'connection' => Generator::getServerSSL(),
+                'connection' => Util::getServerSSL(),
                 'version' => $this->dbi->getVersionString() . ' - ' . $this->dbi->getVersionComment(),
                 'protocol' => $this->dbi->getProtoInfo(),
                 'user' => $this->dbi->fetchValue('SELECT USER();'),
@@ -219,10 +210,10 @@ class HomeController extends AbstractController
         if ($cfg['ShowPhpInfo']) {
             $phpInfo = $this->template->render('list/item', [
                 'content' => __('Show PHP information'),
-                'id' => null,
-                'class' => 'list-group-item',
+                'id' => 'li_phpinfo',
+                'class' => null,
                 'url' => [
-                    'href' => Url::getFromRoute('/phpinfo'),
+                    'href' => 'phpinfo.php' . Url::getCommon(),
                     'target' => '_blank',
                     'id' => null,
                     'class' => null,
@@ -250,10 +241,7 @@ class HomeController extends AbstractController
                         );
                 }
                 $messageInstance = Message::notice($messageText);
-                $messageInstance->addParamHtml(
-                    '<a href="' . Url::getFromRoute('/check-relations')
-                    . '" data-post="' . Url::getCommon() . '">'
-                );
+                $messageInstance->addParamHtml('<a href="./chk_rel.php" data-post="' . Url::getCommon() . '">');
                 $messageInstance->addParamHtml('</a>');
                 /* Show error if user has configured something, notice elsewhere */
                 if (! empty($cfg['Servers'][$server]['pmadb'])) {
@@ -265,12 +253,10 @@ class HomeController extends AbstractController
 
         $this->checkRequirements();
 
-        $git = new Git($this->config);
-
-        $this->render('home/index', [
+        return $this->template->render('home/index', [
             'message' => $displayMessage ?? '',
             'partial_logout' => $partialLogout ?? '',
-            'is_git_revision' => $git->isGitRevision(),
+            'is_git_revision' => $this->config->isGitRevision(),
             'server' => $server,
             'sync_favorite_tables' => $syncFavoriteTables,
             'has_server' => $hasServer,
@@ -291,63 +277,60 @@ class HomeController extends AbstractController
         ]);
     }
 
-    public function setTheme(): void
+    /**
+     * @param array $params Request parameters
+     * @return void
+     */
+    public function setTheme(array $params): void
     {
-        $this->themeManager->setActiveTheme($_POST['set_theme']);
+        $this->themeManager->setActiveTheme($params['set_theme']);
         $this->themeManager->setThemeCookie();
 
         $userPreferences = new UserPreferences();
         $preferences = $userPreferences->load();
-        $preferences['config_data']['ThemeDefault'] = $_POST['set_theme'];
+        $preferences['config_data']['ThemeDefault'] = $params['set_theme'];
         $userPreferences->save($preferences['config_data']);
-
-        $this->response->header('Location: index.php?route=/' . Url::getCommonRaw([], '&'));
     }
 
-    public function setCollationConnection(): void
+    /**
+     * @param array $params Request parameters
+     * @return void
+     */
+    public function setCollationConnection(array $params): void
     {
         $this->config->setUserValue(
             null,
             'DefaultConnectionCollation',
-            $_POST['collation_connection'],
+            $params['collation_connection'],
             'utf8mb4_unicode_ci'
         );
-
-        $this->response->header('Location: index.php?route=/' . Url::getCommonRaw([], '&'));
     }
 
-    public function reloadRecentTablesList(): void
+    /**
+     * @return array JSON
+     */
+    public function reloadRecentTablesList(): array
     {
-        if (! $this->response->isAjax()) {
-            return;
-        }
-
-        $this->response->addJSON([
+        return [
             'list' => RecentFavoriteTable::getInstance('recent')->getHtmlList(),
-        ]);
+        ];
     }
 
-    public function gitRevision(): void
+    /**
+     * @return string HTML
+     */
+    public function gitRevision(): string
     {
-        global $PMA_Config;
-
-        if (! $this->response->isAjax()) {
-            return;
-        }
-
-        $git = new Git($PMA_Config);
-
-        if (! $git->isGitRevision()) {
-            return;
-        }
-
-        $this->response->addHTML((new GitRevision(
+        return (new GitRevision(
             $this->response,
             $this->config,
             $this->template
-        ))->display());
+        ))->display();
     }
 
+    /**
+     * @return void
+     */
     private function checkRequirements(): void
     {
         global $cfg, $server, $lang;
@@ -419,10 +402,9 @@ class HomeController extends AbstractController
         /**
          * Warning if using the default MySQL controluser account
          */
-        if (isset($cfg['Server']['controluser'], $cfg['Server']['controlpass'])
-            && $server != 0
-            && $cfg['Server']['controluser'] == 'pma'
-            && $cfg['Server']['controlpass'] == 'pmapass'
+        if ($server != 0
+            && isset($cfg['Server']['controluser']) && $cfg['Server']['controluser'] == 'pma'
+            && isset($cfg['Server']['controlpass']) && $cfg['Server']['controlpass'] == 'pmapass'
         ) {
             trigger_error(
                 __(

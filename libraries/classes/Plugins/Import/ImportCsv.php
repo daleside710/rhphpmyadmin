@@ -1,37 +1,28 @@
 <?php
+/* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * CSV import plugin for phpMyAdmin
  *
  * @todo       add an option for handling NULL values
+ * @package    PhpMyAdmin-Import
+ * @subpackage CSV
  */
 declare(strict_types=1);
 
 namespace PhpMyAdmin\Plugins\Import;
 
-use PhpMyAdmin\Html\Generator;
+use PhpMyAdmin\Import;
 use PhpMyAdmin\Message;
 use PhpMyAdmin\Properties\Options\Items\BoolPropertyItem;
 use PhpMyAdmin\Properties\Options\Items\NumberPropertyItem;
 use PhpMyAdmin\Properties\Options\Items\TextPropertyItem;
 use PhpMyAdmin\Util;
-use function array_splice;
-use function basename;
-use function count;
-use function is_array;
-use function mb_strlen;
-use function mb_strpos;
-use function mb_strtolower;
-use function mb_substr;
-use function preg_grep;
-use function preg_replace;
-use function preg_split;
-use function rtrim;
-use function strlen;
-use function strtr;
-use function trim;
 
 /**
  * Handles the import for the CSV format
+ *
+ * @package    PhpMyAdmin-Import
+ * @subpackage CSV
  */
 class ImportCsv extends AbstractImportCsv
 {
@@ -42,6 +33,9 @@ class ImportCsv extends AbstractImportCsv
      */
     private $_analyze;
 
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         parent::__construct();
@@ -68,7 +62,7 @@ class ImportCsv extends AbstractImportCsv
 
         if ($GLOBALS['plugin_param'] !== 'table') {
             $leaf = new TextPropertyItem(
-                'new_tbl_name',
+                "new_tbl_name",
                 __(
                     'Name of the new table (optional):'
                 )
@@ -77,7 +71,7 @@ class ImportCsv extends AbstractImportCsv
 
             if ($GLOBALS['plugin_param'] === 'server') {
                 $leaf = new TextPropertyItem(
-                    'new_db_name',
+                    "new_db_name",
                     __(
                         'Name of the new database (optional):'
                     )
@@ -86,7 +80,7 @@ class ImportCsv extends AbstractImportCsv
             }
 
             $leaf = new NumberPropertyItem(
-                'partial_import',
+                "partial_import",
                 __(
                     'Import these many number of rows (optional):'
                 )
@@ -94,7 +88,7 @@ class ImportCsv extends AbstractImportCsv
             $generalOptions->addProperty($leaf);
 
             $leaf = new BoolPropertyItem(
-                'col_names',
+                "col_names",
                 __(
                     'The first line of the file contains the table column names'
                     . ' <i>(if this is unchecked, the first line will become part'
@@ -104,7 +98,7 @@ class ImportCsv extends AbstractImportCsv
             $generalOptions->addProperty($leaf);
         } else {
             $leaf = new NumberPropertyItem(
-                'partial_import',
+                "partial_import",
                 __(
                     'Import these many number of rows (optional):'
                 )
@@ -120,14 +114,14 @@ class ImportCsv extends AbstractImportCsv
                 )
             );
             $leaf = new TextPropertyItem(
-                'columns',
-                __('Column names:') . ' ' . Generator::showHint($hint)
+                "columns",
+                __('Column names:') . ' ' . Util::showHint($hint)
             );
             $generalOptions->addProperty($leaf);
         }
 
         $leaf = new BoolPropertyItem(
-            'ignore',
+            "ignore",
             __('Do not abort on INSERT error')
         );
         $generalOptions->addProperty($leaf);
@@ -148,10 +142,10 @@ class ImportCsv extends AbstractImportCsv
         // but we use directly from $_POST
         global $error, $timeout_passed, $finished, $message;
 
-        $import_file_name = basename($import_file_name, '.csv');
+        $import_file_name = basename($import_file_name, ".csv");
         $import_file_name = mb_strtolower($import_file_name);
-        $import_file_name = preg_replace('/[^a-zA-Z0-9_]/', '_', $import_file_name);
-
+        $import_file_name = preg_replace("/[^a-zA-Z0-9_]/", "_", $import_file_name);
+        
         $replacements = [
             '\\n' => "\n",
             '\\t' => "\t",
@@ -210,7 +204,7 @@ class ImportCsv extends AbstractImportCsv
         // If there is an error in the parameters entered,
         // indicate that immediately.
         if ($param_error) {
-            Generator::mysqlDie(
+            Util::mysqlDie(
                 $message->getMessage(),
                 '',
                 false,
@@ -285,11 +279,7 @@ class ImportCsv extends AbstractImportCsv
         $csv_finish = false;
         $max_lines = 0; // defaults to 0 (get all the lines)
 
-        /**
-         * If we get a negative value, probably someone changed min value
-         * attribute in DOM or there is an integer overflow, whatever be
-         * the case, get all the lines.
-         */
+        // If we get a negative value, probably someone changed min value attribute in DOM or there is an integer overflow, whatever be the case, get all the lines
         if (isset($_REQUEST['csv_partial_import']) && $_REQUEST['csv_partial_import'] > 0) {
             $max_lines = $_REQUEST['csv_partial_import'];
         }
@@ -474,7 +464,7 @@ class ImportCsv extends AbstractImportCsv
                     }
 
                     // unquoted NULL string
-                    if ($need_end === false && $value === 'NULL') {
+                    if (false === $need_end && $value === 'NULL') {
                         $value = null;
                     }
 
@@ -621,13 +611,13 @@ class ImportCsv extends AbstractImportCsv
                         }
                         $sql .= ')';
                         if (isset($_POST['csv_replace'])) {
-                            $sql .= ' ON DUPLICATE KEY UPDATE ';
+                            $sql .= " ON DUPLICATE KEY UPDATE ";
                             foreach ($fields as $field) {
                                 $fieldName = Util::backquote(
                                     $field['Field']
                                 );
-                                $sql .= $fieldName . ' = VALUES(' . $fieldName
-                                    . '), ';
+                                $sql .= $fieldName . " = VALUES(" . $fieldName
+                                    . "), ";
                             }
                             $sql = rtrim($sql, ', ');
                         }
@@ -693,21 +683,21 @@ class ImportCsv extends AbstractImportCsv
                 $tbl_name = $_REQUEST['csv_new_tbl_name'];
             } elseif (mb_strlen((string) $db)) {
                 $result = $GLOBALS['dbi']->fetchResult('SHOW TABLES');
-
+                
                 // logic to get table name from filename
                 // if no table then use filename as table name
                 if (count($result) === 0) {
                     $tbl_name = $import_file_name;
                 } else {
                     // check to see if {filename} as table exist
-                    $name_array = preg_grep('/' . $import_file_name . '/isU', $result);
+                    $name_array = preg_grep("/{$import_file_name}/isU", $result);
                     // if no use filename as table name
                     if (count($name_array) === 0) {
                         $tbl_name = $import_file_name;
                     } else {
                         // check if {filename}_ as table exist
-                        $name_array = preg_grep('/' . $import_file_name . '_/isU', $result);
-                        $tbl_name = $import_file_name . '_' . (count($name_array) + 1);
+                        $name_array = preg_grep("/{$import_file_name}_/isU", $result);
+                        $tbl_name = $import_file_name . "_" . (count($name_array) + 1);
                     }
                 }
             } else {
@@ -753,7 +743,7 @@ class ImportCsv extends AbstractImportCsv
                 }
                 $newDb = 'CSV_DB ' . (count($result) + 1);
             }
-            [$db_name, $options] = $this->getDbnameAndOptions($db, $newDb);
+            list($db_name, $options) = $this->getDbnameAndOptions($db, $newDb);
 
             /* Non-applicable parameters */
             $create = null;
@@ -761,7 +751,8 @@ class ImportCsv extends AbstractImportCsv
             /* Created and execute necessary SQL statements from data */
             $this->import->buildSql($db_name, $tables, $analyses, $create, $options, $sql_data);
 
-            unset($tables, $analyses);
+            unset($tables);
+            unset($analyses);
         }
 
         // Commit any possible data in buffers
@@ -801,7 +792,6 @@ class ImportCsv extends AbstractImportCsv
 
         return $ch;
     }
-
     /* ~~~~~~~~~~~~~~~~~~~~ Getters and Setters ~~~~~~~~~~~~~~~~~~~~ */
 
     /**
