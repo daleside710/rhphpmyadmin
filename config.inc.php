@@ -24,7 +24,8 @@ $cfg['Servers'][$i]['AllowNoPassword'] = true;
 $cfg['Lang'] = '';
 
 /* Bind to the localhost ipv4 address and tcp */
-$cfg['Servers'][$i]['host'] = 's-cdbr-iron-east-01.cleardb.net:3306';
+$cfg['Servers'][$i]['host'] = 's-cdbr-iron-east-01.cleardb.net';
+$cfg['Servers'][$i]['port'] = '3306';
 $cfg['Servers'][$i]['connect_type'] = 'tcp';
 
 /* User for advanced features */
