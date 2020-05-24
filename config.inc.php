@@ -17,14 +17,14 @@ $i++;
 
 /* Authentication type and info */
 $cfg['Servers'][$i]['auth_type'] = 'config';
-$cfg['Servers'][$i]['user'] = 'root';
-$cfg['Servers'][$i]['password'] = 'yerdAwb3quel?';
+$cfg['Servers'][$i]['user'] = 'b3398d16631967';
+$cfg['Servers'][$i]['password'] = '594f156c';
 $cfg['Servers'][$i]['extension'] = 'mysqli';
 $cfg['Servers'][$i]['AllowNoPassword'] = true;
 $cfg['Lang'] = '';
 
 /* Bind to the localhost ipv4 address and tcp */
-$cfg['Servers'][$i]['host'] = '52.17.162.16';
+$cfg['Servers'][$i]['host'] = 'us-cdbr-iron-east-01.cleardb.net';
 $cfg['Servers'][$i]['port'] = '3306';
 $cfg['Servers'][$i]['connect_type'] = 'tcp';
 
