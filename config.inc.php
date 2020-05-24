@@ -24,7 +24,7 @@ $cfg['Servers'][$i]['AllowNoPassword'] = true;
 $cfg['Lang'] = '';
 
 /* Bind to the localhost ipv4 address and tcp */
-$cfg['Servers'][$i]['host'] = 'www.804meter.com';
+$cfg['Servers'][$i]['host'] = '52.17.162.16';
 $cfg['Servers'][$i]['port'] = '3306';
 $cfg['Servers'][$i]['connect_type'] = 'tcp';
 
